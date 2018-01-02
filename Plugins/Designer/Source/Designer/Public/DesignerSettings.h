@@ -26,18 +26,18 @@
 
 class FDesignerEdMode;
 
-UENUM()
-enum class EPlacementType : uint8
-{
-	/** Place the object fixed */
-	Fixed = 0 UMETA(DisplayName = "Fixed"),
-
-	/** Place the object using the mouse */
-	Cursor = 1 UMETA(DisplayName = "Mouse"),
-
-	/** Place the object randomly within the given min max parameters */
-	Random = 2 UMETA(DisplayName = "Random")
-};
+//UENUM()
+//enum class EPlacementType : uint8
+//{
+//	/** Place the object fixed */
+//	Fixed = 0 UMETA(DisplayName = "Fixed"),
+//
+//	/** Place the object using the mouse */
+//	Cursor = 1 UMETA(DisplayName = "Mouse"),
+//
+//	/** Place the object randomly within the given min max parameters */
+//	Random = 2 UMETA(DisplayName = "Random")
+//};
 
 UENUM()
 enum class EAxisType : uint8
@@ -85,9 +85,9 @@ public:
 	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
 	EAxisType AxisToAlignWithNormal;
 
-	/** Actor axis vector to align with the cursor direction */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	EAxisType AxisToAlignWithCursor;
+	///** Actor axis vector to align with the cursor direction */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//EAxisType AxisToAlignWithCursor;
 
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
 	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
@@ -101,29 +101,29 @@ public:
 	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationZ;
 
-	/** Choose the type of placement applied to the x axis of the rotation */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	EPlacementType RotationTypeX;
+	///** Choose the type of placement applied to the x axis of the rotation */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//EPlacementType RotationTypeX;
 
-	/** If the rotation type x is defined as random these values will be used to determine the minimum and maximum value */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	FVector2D RandomRotationMinMaxX;
+	///** If the rotation type x is defined as random these values will be used to determine the minimum and maximum value */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//FVector2D RandomRotationMinMaxX;
 
-	/** Choose the type of placement applied to the y axis of the rotation */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	EPlacementType RotationTypeY;
+	///** Choose the type of placement applied to the y axis of the rotation */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//EPlacementType RotationTypeY;
 
-	/** If the rotation type y is defined as random these values will be used to determine the minimum and maximum value */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	FVector2D RandomRotationMinMaxY;
+	///** If the rotation type y is defined as random these values will be used to determine the minimum and maximum value */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//FVector2D RandomRotationMinMaxY;
 
-	/** Choose the type of placement applied to the Z axis of the rotation */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	EPlacementType RotationTypeZ;
+	///** Choose the type of placement applied to the Z axis of the rotation */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//EPlacementType RotationTypeZ;
 
-	/** If the rotation type z is defined as random these values will be used to determine the minimum and maximum value */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	FVector2D RandomRotationMinMaxZ;
+	///** If the rotation type z is defined as random these values will be used to determine the minimum and maximum value */
+	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//FVector2D RandomRotationMinMaxZ;
 
 private:
 	FDesignerEdMode* ParentEdMode;

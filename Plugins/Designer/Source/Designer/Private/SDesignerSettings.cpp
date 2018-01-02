@@ -65,7 +65,7 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 	FDesignerEdMode* DesignerEdMode = GetEditorMode();
 	if (DesignerEdMode)
 	{
-		DetailsPanel->SetObject(DesignerEdMode->UISettings, true);
+		DetailsPanel->SetObject(DesignerEdMode->DesignerSettings, true);
 	}
 
 	ChildSlot

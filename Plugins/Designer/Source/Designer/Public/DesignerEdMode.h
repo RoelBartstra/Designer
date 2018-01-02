@@ -44,14 +44,17 @@ private:
 	FPlane PlacementPlane;
 
 	/* When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane. */
-	FVector MousePlaneHitLocation;
+	FVector CursorPlaneHitLocation;
+
+	// The transform the actor was spawned at without relative and world offset defined in the settings.
+	FTransform DesignerActorTransformExcludingOffset;
 
 public:
 	FDesignerEdMode();
 	virtual ~FDesignerEdMode();
 
 	bool CanSpawnActor;
-	UDesignerSettings* UISettings;
+	UDesignerSettings* DesignerSettings;
 
 	/** The selected actor according to designer. */
 	AActor* SpawnedDesignerActor;
@@ -104,6 +107,9 @@ public:
 	bool UsesToolkits() const override;
 
 	FTransform CalculateDesignerActorTransform(FActorPositionTraceResult ActorPositionTraceResult);
+
+	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset. */
+	void UpdateDesignerActorTransform();
 
 private:
 	void PlacementVisualizerMaterialData(FVector MouseLocationWorld);

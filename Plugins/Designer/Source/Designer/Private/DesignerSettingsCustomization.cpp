@@ -67,13 +67,40 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		.bColorAxisLabels(true)
 		.AllowSpin(false)
 		.Font(DetailBuilder.GetDetailFont())
-		.X_Lambda([=]() -> float { return DesignerEdMode->UISettings->SpawnLocationOffsetRelative.X; })
-		.Y_Lambda([=]() -> float { return DesignerEdMode->UISettings->SpawnLocationOffsetRelative.Y; })
-		.Z_Lambda([=]() -> float { return DesignerEdMode->UISettings->SpawnLocationOffsetRelative.Z; })
-		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->UISettings->SpawnLocationOffsetRelative.X = Value; })
-		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->UISettings->SpawnLocationOffsetRelative.Y = Value; })
-		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->UISettings->SpawnLocationOffsetRelative.Z = Value; })
+		.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.X; })
+		.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Y; })
+		.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Z; })
+		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.X = Value; })
+		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Y = Value; })
+		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Z = Value; })
 	];
+
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SpawnLocationOffsetWorld));
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_X = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("X").ToSharedRef();
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Y = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Y").ToSharedRef();
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Z = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Z").ToSharedRef();
+
+	PlacementSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetWorld)
+		.CustomWidget()
+		.NameContent()
+		[
+			PropertyHandle_SpawnLocationOffsetWorld->CreatePropertyNameWidget()
+		]
+	.ValueContent()
+		.MinDesiredWidth(125.0f * 3.0f) // copied from FComponentTransformDetails
+		.MaxDesiredWidth(125.0f * 3.0f)
+		[
+			SNew(SVectorInputBox)
+			.bColorAxisLabels(true)
+		.AllowSpin(false)
+		.Font(DetailBuilder.GetDetailFont())
+		.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X; })
+		.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y; })
+		.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z; })
+		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X = Value; })
+		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y = Value; })
+		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z = Value; })
+		];
 }
 
 void FDesignerSettingsCustomization::OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder)

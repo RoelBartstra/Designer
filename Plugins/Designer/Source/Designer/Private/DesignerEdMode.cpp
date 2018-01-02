@@ -43,8 +43,8 @@ const FEditorModeID FDesignerEdMode::EM_DesignerEdModeId = TEXT("EM_DesignerEdMo
 
 FDesignerEdMode::FDesignerEdMode()
 {
-	UISettings = NewObject<UDesignerSettings>(GetTransientPackage(), TEXT("DesignerEdModeSettings"), RF_Transactional);
-	UISettings->SetParent(this);
+	DesignerSettings = NewObject<UDesignerSettings>(GetTransientPackage(), TEXT("DesignerEdModeSettings"), RF_Transactional);
+	DesignerSettings->SetParent(this);
 
 	// Load resources and construct brush component
 	UStaticMesh* StaticMesh = nullptr;
@@ -83,7 +83,7 @@ void FDesignerEdMode::AddReferencedObjects(FReferenceCollector& Collector)
 	// Call parent implementation
 	FEdMode::AddReferencedObjects(Collector);
 
-	Collector.AddReferencedObject(UISettings);
+	Collector.AddReferencedObject(DesignerSettings);
 	Collector.AddReferencedObject(PlacementVisualizerComponent);
 }
 
@@ -135,10 +135,10 @@ void FDesignerEdMode::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 		PlacementPlane.FindBestAxisVectors(Axis1, Axis2);
 		FVector Direction;
 		float Length;
-		(MousePlaneHitLocation - SpawnedDesignerActor->GetActorLocation()).ToDirectionAndLength(Direction, Length);
-		DrawCircle(PDI, SpawnedDesignerActor->GetActorLocation(), Axis1, Axis2, FLinearColor::Blue, Length, 32, 0);
-		PDI->DrawLine(SpawnedDesignerActor->GetActorLocation(), MousePlaneHitLocation, FLinearColor::Green, 1);
-		PDI->DrawPoint(MousePlaneHitLocation, FLinearColor::Red, 4, 2);
+		(CursorPlaneHitLocation - DesignerActorTransformExcludingOffset.GetLocation()).ToDirectionAndLength(Direction, Length);
+		DrawCircle(PDI, DesignerActorTransformExcludingOffset.GetLocation(), Axis1, Axis2, FLinearColor::Blue, Length, 32, 0);
+		PDI->DrawLine(DesignerActorTransformExcludingOffset.GetLocation(), CursorPlaneHitLocation, FLinearColor::Green, 1);
+		PDI->DrawPoint(CursorPlaneHitLocation, FLinearColor::Red, 4, 2);
 	}
 }
 
@@ -280,31 +280,24 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 							UE_LOG(LogDesigner, Error, TEXT("HIT FAIL"));
 							return FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
 						}
-
-						// LINE PLANE INTERSECTION WILL BE USE TO DETERMINE WHERE THE MOUSE HITS COMPARED TO ITS MOUSE DOWN START LOCATION SO WE CAN ROTATE THE OBJECT X AXIS TOWARDS THE MOUSE.
-						// OutHitLocation = FMath::LinePlaneIntersection(Start, End, Plane);
-
-						// FActorPositionTraceResult TraceWorldForPosition(const UWorld& InWorld, const FSceneView& InSceneView, const FVector& RayStart, const FVector& RayEnd, const TArray<AActor*>* IgnoreActors = nullptr);
-						// FActorPositionTraceResult ActorPositionTraceResult = FActorPositioning::TraceWorldForPosition(GetWorld(), *SceneView, TraceStartLocation, TraceEndLocation);
-						// FSnappingUtils::SnapPointToGrid(, FVector::ZeroVector);
 						
-						FTransform SpawnTransform = CalculateDesignerActorTransform(ActorPositionTraceResult);
-						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &SpawnTransform);
+						DesignerActorTransformExcludingOffset = CalculateDesignerActorTransform(ActorPositionTraceResult);
+						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &DesignerActorTransformExcludingOffset);
+						UpdateDesignerActorTransform();
 						DefaultDesignerActorExtent = SpawnedDesignerActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
 						
 						// Properly reset data.
-						MousePlaneHitLocation = SpawnTransform.GetLocation();
+						CursorPlaneHitLocation = DesignerActorTransformExcludingOffset.GetLocation();
 						PlacementPlane = FPlane();
 
 						// SHOULD BE REPLACED WITH UPDATING THE ENTIRE TRANSFORM LIKE IT'S DONE IN CAPUTURED MOUSE MOVE.
 						SpawnedDesignerActor->SetActorScale3D(FVector(KINDA_SMALL_NUMBER));
 						
 						FTransform PlacementVisualizerTransform = FTransform();
-						PlacementVisualizerTransform.SetLocation(SpawnedDesignerActor->GetActorLocation());
+						PlacementVisualizerTransform.SetLocation(DesignerActorTransformExcludingOffset.GetLocation());
 						PlacementVisualizerTransform.SetRotation(FRotationMatrix::MakeFromZX(SpawnedDesignerActor->GetActorUpVector(), FVector::ForwardVector).ToQuat());
 						PlacementVisualizerTransform.SetScale3D(FVector::OneVector * 100);
 						PlacementVisualizerComponent->SetRelativeTransform(PlacementVisualizerTransform);
-						//PlacementVisualizerMaterialData(ActorPositionTraceResult.Location);
 
 						if (!PlacementVisualizerComponent->IsRegistered())
 						{
@@ -352,7 +345,7 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 	FVector TraceEndLocation = TraceStartLocation + TraceDirection * WORLD_MAX;
 
 	FVector PlaneNormal;
-	switch (UISettings->AxisToAlignWithNormal)
+	switch (DesignerSettings->AxisToAlignWithNormal)
 	{
 	case EAxisType::None:
 		PlaneNormal = FVector::UpVector;
@@ -381,17 +374,16 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 
 	}
 	
-	//FVector PlaneNormal = -ViewportCenterRay.GetDirection();
-	PlacementPlane = FPlane(SpawnedDesignerActor->GetActorLocation(), PlaneNormal);
-	MousePlaneHitLocation = FMath::LinePlaneIntersection(TraceStartLocation, TraceEndLocation, PlacementPlane);
+	PlacementPlane = FPlane(DesignerActorTransformExcludingOffset.GetLocation(), PlaneNormal);
+	CursorPlaneHitLocation = FMath::LinePlaneIntersection(TraceStartLocation, TraceEndLocation, PlacementPlane);
 
 	FVector Direction;
 	float Length;
-	(MousePlaneHitLocation - SpawnedDesignerActor->GetActorLocation()).ToDirectionAndLength(Direction, Length);
+	(CursorPlaneHitLocation - DesignerActorTransformExcludingOffset.GetLocation()).ToDirectionAndLength(Direction, Length);
 
-	FVector Scale = FVector(Length) / DefaultDesignerActorExtent;
+	DesignerActorTransformExcludingOffset.SetScale3D(FVector(Length) / DefaultDesignerActorExtent);
 
-	SpawnedDesignerActor->SetActorScale3D(Scale);
+	//SpawnedDesignerActor->SetActorScale3D(Scale);
 
 	/*
 	FRotator DesignerActorRotation = FRotator();
@@ -430,14 +422,15 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 	}
 	*/
 
-	FRotator DesignerActorRotation = FRotationMatrix::MakeFromZX(SpawnedDesignerActor->GetActorUpVector(), Direction).Rotator();
-	SpawnedDesignerActor->SetActorRotation(DesignerActorRotation);
+	DesignerActorTransformExcludingOffset.SetRotation(FRotationMatrix::MakeFromZX(SpawnedDesignerActor->GetActorUpVector(), Direction).ToQuat());
 
 	//FRotator PlacementVisualizerRotation = FRotationMatrix::MakeFromZX(PlaneNormal, SpawnedDesignerActor->GetActorForwardVector()).Rotator();
 	//FTransform PlacementVisualizerTransform = FTransform(PlacementVisualizerRotation, SpawnedDesignerActor->GetActorLocation(), SpawnedDesignerActor->GetActorScale3D());
 	//PlacementVisualizerComponent->SetRelativeTransform(PlacementVisualizerTransform);
 
 	//PlacementVisualizerMaterialData(MousePlaneHitLocation);
+
+	UpdateDesignerActorTransform();
 
 	return FEdMode::CapturedMouseMove(ViewportClient, Viewport, MouseX, MouseY);
 }
@@ -486,7 +479,7 @@ FTransform FDesignerEdMode::CalculateDesignerActorTransform(FActorPositionTraceR
 
 	FRotator DesignerActorRotation = FRotator();
 
-	switch (UISettings->AxisToAlignWithNormal)
+	switch (DesignerSettings->AxisToAlignWithNormal)
 	{
 	case EAxisType::None:
 		// Allow random rotation on x, y and z axis.		
@@ -520,14 +513,20 @@ FTransform FDesignerEdMode::CalculateDesignerActorTransform(FActorPositionTraceR
 	}
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	DesignerActorRotation.Roll = UISettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
-	DesignerActorRotation.Pitch = UISettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
-	DesignerActorRotation.Yaw = UISettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
+	DesignerActorRotation.Roll = DesignerSettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
+	DesignerActorRotation.Pitch = DesignerSettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
+	DesignerActorRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 	DesignerActorTransform.SetRotation(DesignerActorRotation.Quaternion());
 
 	return DesignerActorTransform;
 }
 
+void FDesignerEdMode::UpdateDesignerActorTransform()
+{
+	SpawnedDesignerActor->SetActorTransform(DesignerActorTransformExcludingOffset);
+	SpawnedDesignerActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
+	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
+}
 
 void FDesignerEdMode::PlacementVisualizerMaterialData(FVector MouseLocationWorld)
 {
@@ -535,4 +534,3 @@ void FDesignerEdMode::PlacementVisualizerMaterialData(FVector MouseLocationWorld
 	const FName CursorDataParameterName("CursorData");
 	PlacementVisualizerMID->SetVectorParameterValue(CursorDataParameterName, CursorData);
 }
-
