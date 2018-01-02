@@ -1,10 +1,10 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0",
+	"VersionName": "0.1.0",
 	"FriendlyName": "Designer",
 	"Description": "Easy to use level design tools.",
-	"Category": "Tools",
+	"Category": "Editor Modes",
 	"CreatedBy": "Roel Bartstra",
 	"CreatedByURL": "",
 	"DocsURL": "",
