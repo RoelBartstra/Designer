@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Designer",
+	"Description": "Easy to use level design tools.",
+	"Category": "Tools",
+	"CreatedBy": "Roel Bartstra",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": true,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "Designer",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
