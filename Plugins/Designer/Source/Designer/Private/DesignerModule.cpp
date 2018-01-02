@@ -18,7 +18,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-#include "Designer.h"
+#include "DesignerModule.h"
 #include "DesignerEdMode.h"
 
 #include "DesignerSettingsCustomization.h"

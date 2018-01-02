@@ -20,7 +20,7 @@
 
 #include "SDesignerSettings.h"
 
-#include "Designer.h"
+#include "DesignerModule.h"
 #include "DesignerEdMode.h"
 #include "DesignerSettings.h"
 #include "DesignerSettingsCustomization.h"

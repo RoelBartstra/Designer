@@ -23,7 +23,7 @@
 #include "Toolkits/ToolkitManager.h"
 #include "EditorModeManager.h"
 
-#include "Designer.h"
+#include "DesignerModule.h"
 #include "DesignerSettings.h"
 
 #include "UObject/Class.h"
@@ -175,11 +175,11 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	{
 		if (Event == IE_Pressed)
 		{
-			UE_LOG(LogDesigner, Log, TEXT("LEFT MOUSE BUTTON PRESSED"));
+			//UE_LOG(LogDesigner, Log, TEXT("LEFT MOUSE BUTTON PRESSED"));
 
 			if (CanSpawnActor)
 			{
-				UE_LOG(LogDesigner, Log, TEXT("TRY TO SPAWN ACTOR"));
+				//UE_LOG(LogDesigner, Log, TEXT("TRY TO SPAWN ACTOR"));
 
 				TArray<FAssetData> ContentBrowserSelections;
 				GEditor->GetContentBrowserSelections(ContentBrowserSelections);
@@ -244,7 +244,7 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 				if (bPlaceable && IsValid(TargetAsset))
 				{
-					UE_LOG(LogDesigner, Log, TEXT("ACTOR IS PLACABLE"));
+					//UE_LOG(LogDesigner, Log, TEXT("ACTOR IS PLACABLE"));
 					UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAsset);
 					if (ActorFactory)
 					{
@@ -273,7 +273,7 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 						if (ActorPositionTraceResult.HitActor != nullptr)
 						{
-							UE_LOG(LogDesigner, Warning, TEXT("HIT: %s"), *ActorPositionTraceResult.HitActor->GetName());
+							//UE_LOG(LogDesigner, Warning, TEXT("HIT: %s"), *ActorPositionTraceResult.HitActor->GetName());
 						}
 						else
 						{

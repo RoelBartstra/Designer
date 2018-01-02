@@ -19,7 +19,7 @@
 //  SOFTWARE.
 
 #include "DesignerSettingsCustomization.h"
-#include "Designer.h"
+#include "DesignerModule.h"
 
 #include "DesignerEdMode.h"
 #include "DesignerSettings.h"
@@ -36,13 +36,13 @@
 
 TSharedRef<IDetailCustomization> FDesignerSettingsCustomization::MakeInstance()
 {
-	UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::MakeInstance"));
+	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::MakeInstance"));
 	return MakeShareable(new FDesignerSettingsCustomization());
 }
 
 void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {
-	UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::CustomizeDetails"));
+	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::CustomizeDetails"));
 	
 	FDesignerEdMode* DesignerEdMode = (FDesignerEdMode*)GLevelEditorModeTools().GetActiveMode(FDesignerEdMode::EM_DesignerEdModeId);
 
@@ -78,12 +78,12 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 
 void FDesignerSettingsCustomization::OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder)
 {
-	UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::OnPaintTypeChanged"));
+	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::OnPaintTypeChanged"));
 	LayoutBuilder->ForceRefreshDetails();
 }
 
 TSharedPtr<SWidget> FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader(const UObject* InRootObject)
 {
-	UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader"));
+	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader"));
 	return SNullWidget::NullWidget;
 }
