@@ -351,22 +351,22 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 		PlaneNormal = FVector::UpVector;
 		break;
 	case EAxisType::Forward:
-		PlaneNormal = SpawnedDesignerActor->GetActorForwardVector();
+		PlaneNormal = DesignerActorTransformExcludingOffset.GetRotation().GetForwardVector();
 		break;
 	case EAxisType::Backward:
-		PlaneNormal = -SpawnedDesignerActor->GetActorForwardVector();
+		PlaneNormal = -DesignerActorTransformExcludingOffset.GetRotation().GetForwardVector();
 		break;
 	case EAxisType::Right:
-		PlaneNormal = SpawnedDesignerActor->GetActorRightVector();
+		PlaneNormal = DesignerActorTransformExcludingOffset.GetRotation().GetRightVector();
 		break;
 	case EAxisType::Left:
-		PlaneNormal = -SpawnedDesignerActor->GetActorRightVector();
+		PlaneNormal = -DesignerActorTransformExcludingOffset.GetRotation().GetRightVector();
 		break;
 	case EAxisType::Up:
-		PlaneNormal = SpawnedDesignerActor->GetActorUpVector();
+		PlaneNormal = DesignerActorTransformExcludingOffset.GetRotation().GetUpVector();
 		break;
 	case EAxisType::Down:
-		PlaneNormal = -SpawnedDesignerActor->GetActorUpVector();
+		PlaneNormal = -DesignerActorTransformExcludingOffset.GetRotation().GetUpVector();
 		break;
 	default:
 		PlaneNormal = FVector::UpVector;
@@ -380,8 +380,8 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 	FVector Direction;
 	float Length;
 	(CursorPlaneHitLocation - DesignerActorTransformExcludingOffset.GetLocation()).ToDirectionAndLength(Direction, Length);
-
-	DesignerActorTransformExcludingOffset.SetScale3D(FVector(Length) / DefaultDesignerActorExtent);
+	
+	DesignerActorTransformExcludingOffset.SetScale3D(FVector(Length / DefaultDesignerActorExtent.X));
 
 	//SpawnedDesignerActor->SetActorScale3D(Scale);
 
@@ -482,7 +482,7 @@ FTransform FDesignerEdMode::CalculateDesignerActorTransform(FActorPositionTraceR
 	switch (DesignerSettings->AxisToAlignWithNormal)
 	{
 	case EAxisType::None:
-		// Allow random rotation on x, y and z axis.		
+		DesignerActorRotation = FRotationMatrix::MakeFromZX(FVector::UpVector, FVector::ForwardVector).Rotator();
 		break;
 	case EAxisType::Forward:
 		DesignerActorRotation = FRotationMatrix::MakeFromXZ(ActorPositionTraceResult.SurfaceNormal, FVector::UpVector).Rotator();
