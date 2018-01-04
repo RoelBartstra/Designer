@@ -44,6 +44,7 @@ public class Designer : ModuleRules
 				"UnrealEd",
 				"LevelEditor",
                 "EditorStyle",
+                "Projects",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

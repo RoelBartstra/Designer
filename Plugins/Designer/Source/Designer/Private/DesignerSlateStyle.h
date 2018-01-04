@@ -18,23 +18,20 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-#include "DesignerSettings.h"
-#include "DesignerEdMode.h"
+#pragma once
 
-UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-	, SpawnLocationOffsetRelative(FVector::ZeroVector)
-	, SpawnLocationOffsetWorld(FVector::ZeroVector)
-	, AxisToAlignWithNormal(EAxisType::Up)
-	//, AxisToAlignWithCursor(EAxisType::Forward)
-	, bSnapToGridRotationX(false)
-	, bSnapToGridRotationY(false)
-	, bSnapToGridRotationZ(false)
-	//, RotationTypeX(EPlacementType::Cursor)
-	//, RandomRotationMinMaxX(0, 360)
-	//, RotationTypeY(EPlacementType::Cursor)
-	//, RandomRotationMinMaxY(0, 360)
-	//, RotationTypeZ(EPlacementType::Random)
-	//, RandomRotationMinMaxZ(0, 360)
+#include "ISlateStyle.h"
+
+class FDesignerSlateStyle
 {
-}
+public:
+	static void Initialize();
+	static void Shutdown();
+	static TSharedPtr<class ISlateStyle> Get();
+
+private:
+	static FString InContent(const FString& RelativePath, const ANSICHAR* Extension);
+
+private:
+	static TSharedPtr<class FSlateStyleSet> StyleSet;
+};
