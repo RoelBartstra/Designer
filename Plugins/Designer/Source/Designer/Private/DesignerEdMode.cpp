@@ -159,6 +159,8 @@ bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewpor
 
 bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
+	bool bHandled = false;
+	
 	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
 	{
 		if (Event == IE_Pressed)
@@ -173,6 +175,7 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	
 	if (Key == EKeys::LeftMouseButton)
 	{
+		bHandled = true;
 		if (Event == IE_Pressed)
 		{
 			//UE_LOG(LogDesigner, Log, TEXT("LEFT MOUSE BUTTON PRESSED"));
@@ -320,7 +323,7 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		}
 	}
 	
-	return FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
+	return bHandled;
 }
 
 bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 MouseX, int32 MouseY)
