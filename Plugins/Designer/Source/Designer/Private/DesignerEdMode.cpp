@@ -135,12 +135,6 @@ void FDesignerEdMode::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 	}
 }
 
-bool FDesignerEdMode::GetCursor(EMouseCursor::Type& OutCursor) const
-{
-	OutCursor = EMouseCursor::Crosshairs;
-	return true;
-}
-
 bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport)
 {
 	// Can not spawn actor any more after losing focus to make sure the user has to press ctrl to allow spawning actors.
@@ -300,36 +294,10 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 	return bHandled;
 }
 
-bool FDesignerEdMode::CreateDesignerActor(FEditorViewportClient* InViewportClient, FViewport* InViewport)
-{
-	return false;
-}
-
 bool FDesignerEdMode::UsesTransformWidget() const
 {
-	// Don't show the default transformation widget.
-	// TODO: ONLY SHOW IT WHEN WE ARE NOT ON IN ONE OF THE TOOLS.
-	return false;
-}
-
-void FDesignerEdMode::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
-{
-
-}
-
-bool FDesignerEdMode::Select(AActor* InActor, bool bInSelected)
-{
-	return FEdMode::Select(InActor, bInSelected);
-}
-
-void FDesignerEdMode::ActorSelectionChangeNotify()
-{
-
-}
-
-bool FDesignerEdMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
-{
-	return true;
+	// Only show transform widget when we are not spawning a new actor.
+	return SpawnedDesignerActor == nullptr;
 }
 
 bool FDesignerEdMode::UsesToolkits() const
@@ -480,7 +448,7 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
 }
 
-void FDesignerEdMode::SpawnVisualizerMaterialData(FVector MouseLocationWorld)
+void FDesignerEdMode::UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld)
 {
 	FLinearColor CursorData = FLinearColor(MouseLocationWorld.X, MouseLocationWorld.Y, MouseLocationWorld.Z, 0);
 	const FName CursorDataParameterName("CursorData");

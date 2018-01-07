@@ -75,9 +75,7 @@ public:
 
 	/** Draws translucent polygons on brushes and volumes. */
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI);
-
-	virtual bool GetCursor(EMouseCursor::Type& OutCursor) const;
-	
+		
 	bool LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport);
 	bool InputKey(FEditorViewportClient * ViewportClient, FViewport * Viewport, FKey Key, EInputEvent Event);
 	
@@ -92,20 +90,9 @@ public:
 	 * @return	true if input was handled
 	 */
 	virtual bool CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 MouseX, int32 MouseY);
-
-	bool CreateDesignerActor(FEditorViewportClient* ViewportClient, FViewport* Viewport);
-
-	bool UsesTransformWidget() const;
-	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
-	//virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
 	
-	virtual bool Select(AActor* InActor, bool bInSelected);
-
-	virtual void ActorSelectionChangeNotify() override;
-
-	/** Check to see if an actor can be selected in this mode - no side effects */
-	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const;
-
+	bool UsesTransformWidget() const;
+	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;
 
@@ -119,6 +106,6 @@ public:
 	void UpdateDesignerActorTransform();
 
 private:
-	void SpawnVisualizerMaterialData(FVector MouseLocationWorld);
+	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
 
 };
