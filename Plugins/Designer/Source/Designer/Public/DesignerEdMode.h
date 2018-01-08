@@ -106,6 +106,7 @@ public:
 	void UpdateDesignerActorTransform();
 
 private:
+	FRotator GetSwizzledDesignerActorRotation();
 	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
 
 };

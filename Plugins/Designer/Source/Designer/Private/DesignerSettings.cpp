@@ -26,7 +26,7 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, SpawnLocationOffsetRelative(FVector::ZeroVector)
 	, SpawnLocationOffsetWorld(FVector::ZeroVector)
 	, AxisToAlignWithNormal(EAxisType::Up)
-	//, AxisToAlignWithCursor(EAxisType::Forward)
+	, AxisToAlignWithCursor(EAxisType::Forward)
 	, bSnapToGridRotationX(false)
 	, bSnapToGridRotationY(false)
 	, bSnapToGridRotationZ(false)

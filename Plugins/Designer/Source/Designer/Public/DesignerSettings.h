@@ -85,9 +85,9 @@ public:
 	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
 	EAxisType AxisToAlignWithNormal;
 
-	///** Actor axis vector to align with the cursor direction */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
-	//EAxisType AxisToAlignWithCursor;
+	/** Actor axis vector to align with the cursor direction */
+	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	EAxisType AxisToAlignWithCursor;
 
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
 	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)

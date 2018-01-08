@@ -385,11 +385,11 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 {
 	FTransform NewDesignerActorTransform = MouseDownWorldTransform;
 
-	FVector Direction;
-	float Length;
-	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(Direction, Length);
+	FVector MouseDirection;
+	float MouseDistance;
+	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
-	FVector NewScale = FVector(Length / DefaultDesignerActorExtent.X);
+	FVector NewScale = FVector(MouseDistance / DefaultDesignerActorExtent.X);
 	if (NewScale.ContainsNaN())
 	{
 		NewScale = FVector::OneVector;
@@ -403,42 +403,7 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 
 	NewDesignerActorTransform.SetScale3D(NewScale);
 
-	FRotator DesignerActorRotation = FRotator();
-
-	//switch (DesignerSettings->AxisToAlignWithNormal)
-	//{
-	//case EAxisType::None:
-	//	// Allow random rotation on x, y and z axis.		
-	//	break;
-	//case EAxisType::Forward:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromXZ(ActorPositionTraceResult.SurfaceNormal, FVector::UpVector).Rotator();
-	//	// Allow random rotation on x axis.
-	//	break;
-	//case EAxisType::Backward:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromXZ(-ActorPositionTraceResult.SurfaceNormal, FVector::UpVector).Rotator();
-	//	// Allow random rotation on x axis.
-	//	break;
-	//case EAxisType::Right:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromYZ(ActorPositionTraceResult.SurfaceNormal, FVector::UpVector).Rotator();
-	//	// Allow random rotation on y axis.
-	//	break;
-	//case EAxisType::Left:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromYZ(-ActorPositionTraceResult.SurfaceNormal, FVector::UpVector).Rotator();
-	//	// Allow random rotation on y axis.
-	//	break;
-	//case EAxisType::Up:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromZX(ActorPositionTraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
-	//	// Allow random rotation on z axis.
-	//	break;
-	//case EAxisType::Down:
-	//	DesignerActorRotation = FRotationMatrix::MakeFromZX(-ActorPositionTraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
-	//	// Allow random rotation on z axis.
-	//	break;
-	//default:
-	//	break;
-	//}
-
-	DesignerActorRotation = FRotationMatrix::MakeFromZX(MouseDownWorldTransform.Rotator().Quaternion().GetUpVector(), Direction).Rotator();
+	FRotator DesignerActorRotation = GetSwizzledDesignerActorRotation();
 	
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
@@ -451,6 +416,97 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	SpawnedDesignerActor->SetActorTransform(NewDesignerActorTransform);
 	SpawnedDesignerActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
 	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
+}
+
+
+FRotator FDesignerEdMode::GetSwizzledDesignerActorRotation()
+{
+	FVector MouseDirection;
+	float MouseDistance;
+	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
+
+	FVector ForwardVector = DesignerSettings->AxisToAlignWithCursor == EAxisType::None ? MouseDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
+	FVector UpVector = MouseDownWorldTransform.GetRotation().GetUpVector();
+	
+	// if they're almost same, we need to find arbitrary vector
+	if (FMath::IsNearlyEqual(FMath::Abs(ForwardVector | UpVector), 1.f))
+	{
+		// make sure we don't ever pick the same as NewX
+		UpVector = (FMath::Abs(ForwardVector.Z) < (1.f - KINDA_SMALL_NUMBER)) ? FVector(0, 0, 1.f) : FVector(1.f, 0, 0);
+	}
+
+	FVector RightVector = (UpVector ^ ForwardVector).GetSafeNormal();
+	UpVector = ForwardVector ^ RightVector;
+		
+	FVector SwizzledForwardVector = FVector::ZeroVector;
+	FVector SwizzledRightVector = FVector::ZeroVector;
+	FVector SwizzledUpVector = FVector::ZeroVector;
+
+	switch (DesignerSettings->AxisToAlignWithNormal)
+	{
+	case EAxisType::Forward:
+		SwizzledForwardVector = UpVector;
+		break;
+	case EAxisType::Backward:
+		SwizzledForwardVector = -UpVector;
+		break;
+	case EAxisType::Right:
+		SwizzledRightVector = UpVector;
+		break;
+	case EAxisType::Left:
+		SwizzledRightVector = -UpVector;
+		break;
+	case EAxisType::Down:
+		SwizzledUpVector = -UpVector;
+		break;
+	default: // Axis type none or up.
+		SwizzledUpVector = UpVector;
+		break;
+	}
+
+	switch (DesignerSettings->AxisToAlignWithCursor)
+	{
+	case EAxisType::Backward:
+		SwizzledForwardVector = -ForwardVector;
+		break;
+	case EAxisType::Right:
+		SwizzledRightVector = ForwardVector;
+		break;
+	case EAxisType::Left:
+		SwizzledRightVector = -ForwardVector;
+		break;
+	case EAxisType::Up:
+		SwizzledUpVector = ForwardVector;
+		break;
+	case EAxisType::Down:
+		SwizzledUpVector = -ForwardVector;
+		break;
+	default: // Axis type none or forward.
+		SwizzledForwardVector = ForwardVector;
+		break;
+	}
+	
+	bool bIsForwardVectorSet = !SwizzledForwardVector.IsNearlyZero();
+	bool bIsRightVectorSet = !SwizzledRightVector.IsNearlyZero();
+	bool bIsUpVectorSet = !SwizzledUpVector.IsNearlyZero();
+
+	if (!bIsForwardVectorSet && bIsRightVectorSet && bIsUpVectorSet)
+	{
+		return FRotationMatrix::MakeFromZY(SwizzledUpVector, SwizzledRightVector).Rotator();
+	}
+	else if (!bIsRightVectorSet && bIsForwardVectorSet && bIsUpVectorSet)
+	{
+		return FRotationMatrix::MakeFromZX(SwizzledUpVector, SwizzledForwardVector).Rotator();
+	}
+	else if (!bIsUpVectorSet && bIsForwardVectorSet && bIsRightVectorSet)
+	{
+		return FRotationMatrix::MakeFromXY(SwizzledForwardVector, SwizzledRightVector).Rotator();
+	}
+	else
+	{
+		// Return default rotation of everything else fails.
+		return FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+	}
 }
 
 void FDesignerEdMode::UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld)
