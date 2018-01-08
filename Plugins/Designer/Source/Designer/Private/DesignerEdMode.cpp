@@ -146,6 +146,8 @@ bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewpor
 
 bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
+	FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
+
 	bool bHandled = false;
 	
 	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
@@ -227,7 +229,6 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 				if (bPlaceable && IsValid(TargetAsset))
 				{
-					//UE_LOG(LogDesigner, Log, TEXT("ACTOR IS PLACABLE"));
 					UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAsset);
 					if (ActorFactory)
 					{
@@ -236,8 +237,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 							return bHandled;
 						
 						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &MouseDownWorldTransform);
+						
 						DefaultDesignerActorExtent = SpawnedDesignerActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
-												
+						
 						// Properly reset data.
 						MousePlaneWorldLocation = MouseDownWorldTransform.GetLocation();
 						SpawnTracePlane = FPlane();
@@ -270,6 +272,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			{
 				SpawnVisualizerComponent->UnregisterComponent();
 			}
+
+			// Makes sure we can click the transform widget after the user has spawned the actor.
+			GEditor->RedrawLevelEditingViewports();
 
 			bHandled = false;
 		}
@@ -442,7 +447,7 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	DesignerActorRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 
 	NewDesignerActorTransform.SetRotation(DesignerActorRotation.Quaternion());
-
+	
 	SpawnedDesignerActor->SetActorTransform(NewDesignerActorTransform);
 	SpawnedDesignerActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
 	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
