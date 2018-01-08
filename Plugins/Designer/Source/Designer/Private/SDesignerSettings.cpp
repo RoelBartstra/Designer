@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -36,7 +36,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-//#define LOCTEXT_NAMESPACE "FDesignerSettings"
+#define LOCTEXT_NAMESPACE "DesignerEdMode"
 
 //BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesignerEdModeToolkit> InParentToolkit)
@@ -44,14 +44,14 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
 	FDetailsViewArgs DetailsViewArgs(
-	/*bUpdateFromSelection*/	false,
-	/*bLockable*/				false,
-	/*bAllowSearch*/			false,
-	/*InNameAreaSettings*/		FDetailsViewArgs::HideNameArea,
-	/*bHideSelectionTip*/		true,
-	/*InNotifyHook*/			nullptr,
-	/*InSearchInitialKeyFocus*/	false,
-	/*InViewIdentifier*/		NAME_None);
+		/*bUpdateFromSelection*/	false,
+		/*bLockable*/				false,
+		/*bAllowSearch*/			false,
+		/*InNameAreaSettings*/		FDetailsViewArgs::HideNameArea,
+		/*bHideSelectionTip*/		true,
+		/*InNotifyHook*/			nullptr,
+		/*InSearchInitialKeyFocus*/	false,
+		/*InViewIdentifier*/		NAME_None);
 
 	DetailsViewArgs.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Automatic;
 	DetailsViewArgs.bShowOptions = false;
@@ -66,6 +66,7 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 	if (DesignerEdMode)
 	{
 		DetailsPanel->SetObject(DesignerEdMode->DesignerSettings, true);
+		DesignerSettings = DesignerEdMode->DesignerSettings;
 	}
 
 	ChildSlot
@@ -82,10 +83,23 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 			[
 				DetailsPanel.ToSharedRef()
 			]
+			+ SVerticalBox::Slot()
+			[
+				SNew(STextBlock)
+				.AutoWrapText(true)
+				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+				.Visibility_Raw(this, &SDesignerSettings::AxisErrorVisibility)
+				.Text(LOCTEXT("AxisError", "\"Axis to Align with Normal\" and \"Axis to Align with Cursor\" both use the same axis, this will give incorrect results!"))
+			]
 		]
 	];
 }
 //END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+
+EVisibility SDesignerSettings::AxisErrorVisibility() const
+{
+	return ((int)DesignerSettings->AxisToAlignWithNormal && ((int)DesignerSettings->AxisToAlignWithNormal >> 1) == ((int)DesignerSettings->AxisToAlignWithCursor >> 1)) ? EVisibility::Visible : EVisibility::Hidden;
+}
 
 FDesignerEdMode* SDesignerSettings::GetEditorMode() const
 {

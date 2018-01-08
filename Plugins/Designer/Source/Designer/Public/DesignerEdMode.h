@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -37,17 +37,20 @@ public:
 	const static FEditorModeID EM_DesignerEdModeId;
 
 private:
-	UStaticMeshComponent* PlacementVisualizerComponent;
-	UMaterialInstanceDynamic* PlacementVisualizerMID;
+	/** The static mesh of the Spawn visualizer component. */
+	UStaticMeshComponent* SpawnVisualizerComponent;
+
+	/** The material instance dynamic of the Spawn visualizer component. */
+	UMaterialInstanceDynamic* SpawnVisualizerMID;
 
 	/** The plane we trace against when transforming the placed actor. */
-	FPlane PlacementPlane;
+	FPlane SpawnTracePlane;
+
+	// The world transform stored on mouse click down.
+	FTransform MouseDownWorldTransform;
 
 	/* When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane. */
-	FVector CursorPlaneHitLocation;
-
-	// The transform the actor was spawned at without relative and world offset defined in the settings.
-	FTransform DesignerActorTransformExcludingOffset;
+	FVector MousePlaneWorldLocation;
 
 public:
 	FDesignerEdMode();
@@ -72,9 +75,7 @@ public:
 
 	/** Draws translucent polygons on brushes and volumes. */
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI);
-
-	virtual bool GetCursor(EMouseCursor::Type& OutCursor) const;
-	
+		
 	bool LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport);
 	bool InputKey(FEditorViewportClient * ViewportClient, FViewport * Viewport, FKey Key, EInputEvent Event);
 	
@@ -89,29 +90,23 @@ public:
 	 * @return	true if input was handled
 	 */
 	virtual bool CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 MouseX, int32 MouseY);
-
-	bool CreateDesignerActor(FEditorViewportClient* ViewportClient, FViewport* Viewport);
-
-	bool UsesTransformWidget() const;
-	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime) override;
-	//virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI) override;
 	
-	virtual bool Select(AActor* InActor, bool bInSelected);
-
-	virtual void ActorSelectionChangeNotify() override;
-
-	/** Check to see if an actor can be selected in this mode - no side effects */
-	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const;
-
+	bool UsesTransformWidget() const;
+	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;
 
-	FTransform CalculateDesignerActorTransform(FActorPositionTraceResult ActorPositionTraceResult);
+	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful. */
+	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
+
+	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful. */
+	bool RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
 	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset. */
 	void UpdateDesignerActorTransform();
 
 private:
-	void PlacementVisualizerMaterialData(FVector MouseLocationWorld);
+	FRotator GetDesignerActorRotation();
+	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
 
 };

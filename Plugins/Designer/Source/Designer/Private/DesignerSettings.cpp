@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -26,7 +26,7 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, SpawnLocationOffsetRelative(FVector::ZeroVector)
 	, SpawnLocationOffsetWorld(FVector::ZeroVector)
 	, AxisToAlignWithNormal(EAxisType::Up)
-	//, AxisToAlignWithCursor(EAxisType::Forward)
+	, AxisToAlignWithCursor(EAxisType::Forward)
 	, bSnapToGridRotationX(false)
 	, bSnapToGridRotationY(false)
 	, bSnapToGridRotationZ(false)

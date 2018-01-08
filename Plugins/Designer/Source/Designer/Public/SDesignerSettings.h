@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -35,6 +35,7 @@ class Error;
 class IDetailsView;
 class SErrorText;
 struct FPropertyAndParent;
+class UDesignerSettings;
 
 /**
  * 
@@ -55,6 +56,11 @@ protected:
 	bool GetDesignerSettingsIsEnabled() const;
 
 	bool GetIsPropertyVisible(const FPropertyAndParent& PropertyAndParent) const;
+
+private:
+	UDesignerSettings* DesignerSettings;
+
+	EVisibility AxisErrorVisibility() const;
 
 protected:
 	TSharedPtr<SErrorText> Error;

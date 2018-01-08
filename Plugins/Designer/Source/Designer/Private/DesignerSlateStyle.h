@@ -20,16 +20,18 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
-#include "ModuleManager.h"
+#include "ISlateStyle.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(LogDesigner, All, All);
-
-class FDesignerModule : public IModuleInterface
+class FDesignerSlateStyle
 {
 public:
+	static void Initialize();
+	static void Shutdown();
+	static TSharedPtr<class ISlateStyle> Get();
 
-	/** IModuleInterface implementation */
-	virtual void StartupModule() override;
-	virtual void ShutdownModule() override;
+private:
+	static FString InContent(const FString& RelativePath, const ANSICHAR* Extension);
+
+private:
+	static TSharedPtr<class FSlateStyleSet> StyleSet;
 };
