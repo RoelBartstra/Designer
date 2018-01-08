@@ -502,11 +502,9 @@ FRotator FDesignerEdMode::GetSwizzledDesignerActorRotation()
 	{
 		return FRotationMatrix::MakeFromXY(SwizzledForwardVector, SwizzledRightVector).Rotator();
 	}
-	else
-	{
-		// Return default rotation of everything else fails.
-		return FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
-	}
+
+	// Return default rotation of everything else fails.
+	return FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
 }
 
 void FDesignerEdMode::UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld)
