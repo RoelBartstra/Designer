@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -18,9 +18,10 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 //  SOFTWARE.
 
-#include "Designer.h"
+#include "DesignerModule.h"
 #include "DesignerEdMode.h"
 
+#include "DesignerSlateStyle.h"
 #include "DesignerSettingsCustomization.h"
 
 #include "PropertyEditorModule.h"
@@ -31,8 +32,12 @@ DEFINE_LOG_CATEGORY(LogDesigner);
 
 void FDesignerModule::StartupModule()
 {
+	FDesignerSlateStyle::Initialize();
+
+	FSlateIcon DesignerIcon = FSlateIcon(FDesignerSlateStyle::Get()->GetStyleSetName(), "Designer.Icon");
+
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	FEditorModeRegistry::Get().RegisterMode<FDesignerEdMode>(FDesignerEdMode::EM_DesignerEdModeId, LOCTEXT("DesignerEdModeName", "Designer"), FSlateIcon(), true, 100);
+	FEditorModeRegistry::Get().RegisterMode<FDesignerEdMode>(FDesignerEdMode::EM_DesignerEdModeId, LOCTEXT("DesignerEdModeName", "Designer"), DesignerIcon, true, 100);
 
 	/** Register detail/property customization */
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
@@ -41,6 +46,8 @@ void FDesignerModule::StartupModule()
 
 void FDesignerModule::ShutdownModule()
 {
+	FDesignerSlateStyle::Shutdown();
+
 	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
 	// we call this function before unloading the module.
 	FEditorModeRegistry::Get().UnregisterMode(FDesignerEdMode::EM_DesignerEdModeId);

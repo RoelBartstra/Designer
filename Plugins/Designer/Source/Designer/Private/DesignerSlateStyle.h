@@ -20,50 +20,18 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "ISlateStyle.h"
 
-#include "Widgets/DeclarativeSyntaxSupport.h"
-#include "Widgets/SCompoundWidget.h"
-
-#include "DesignerEdModeToolkit.h"
-
-#include "Toolkits/IToolkitHost.h"
-#include "AssetThumbnail.h"
-#include "Toolkits/BaseToolkit.h"
-
-class Error;
-class IDetailsView;
-class SErrorText;
-struct FPropertyAndParent;
-class UDesignerSettings;
-
-/**
- * 
- */
-class DESIGNER_API SDesignerSettings : public SCompoundWidget
+class FDesignerSlateStyle
 {
 public:
-	SLATE_BEGIN_ARGS(SDesignerSettings) {}
-	SLATE_END_ARGS()
-
-	void Construct(const FArguments& InArgs, TSharedRef<FDesignerEdModeToolkit> InParentToolkit);
-	
-protected:
-	class FDesignerEdMode* GetEditorMode() const;
-
-	FText GetErrorText() const;
-
-	bool GetDesignerSettingsIsEnabled() const;
-
-	bool GetIsPropertyVisible(const FPropertyAndParent& PropertyAndParent) const;
+	static void Initialize();
+	static void Shutdown();
+	static TSharedPtr<class ISlateStyle> Get();
 
 private:
-	UDesignerSettings* DesignerSettings;
+	static FString InContent(const FString& RelativePath, const ANSICHAR* Extension);
 
-	EVisibility AxisErrorVisibility() const;
-
-protected:
-	TSharedPtr<SErrorText> Error;
-
-	TSharedPtr<IDetailsView> DetailsPanel;
+private:
+	static TSharedPtr<class FSlateStyleSet> StyleSet;
 };

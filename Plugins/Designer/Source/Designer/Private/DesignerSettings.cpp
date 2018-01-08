@@ -1,4 +1,4 @@
-//  Copyright 2017 Roel Bartstra.
+//  Copyright 2018 Roel Bartstra.
 
 //  Permission is hereby granted, free of charge, to any person obtaining a copy
 //  of this software and associated documentation files(the "Software"), to deal
@@ -27,11 +27,14 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, SpawnLocationOffsetWorld(FVector::ZeroVector)
 	, AxisToAlignWithNormal(EAxisType::Up)
 	, AxisToAlignWithCursor(EAxisType::Forward)
-	, RotationTypeX(EPlacementType::Cursor)
-	, RandomRotationMinMaxX(0, 360)
-	, RotationTypeY(EPlacementType::Cursor)
-	, RandomRotationMinMaxY(0, 360)
-	, RotationTypeZ(EPlacementType::Random)
-	, RandomRotationMinMaxZ(0, 360)
+	, bSnapToGridRotationX(false)
+	, bSnapToGridRotationY(false)
+	, bSnapToGridRotationZ(false)
+	//, RotationTypeX(EPlacementType::Cursor)
+	//, RandomRotationMinMaxX(0, 360)
+	//, RotationTypeY(EPlacementType::Cursor)
+	//, RandomRotationMinMaxY(0, 360)
+	//, RotationTypeZ(EPlacementType::Random)
+	//, RandomRotationMinMaxZ(0, 360)
 {
 }
