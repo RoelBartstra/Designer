@@ -402,24 +402,15 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	NewScale.Z = FMath::Max(NewScale.Z, 0.0001F);
 
 	NewDesignerActorTransform.SetScale3D(NewScale);
-
-	FRotator DesignerActorRotation = GetSwizzledDesignerActorRotation();
 	
-	FRotator SpawnRotationSnapped = DesignerActorRotation;
-	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	DesignerActorRotation.Roll = DesignerSettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
-	DesignerActorRotation.Pitch = DesignerSettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
-	DesignerActorRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
-
-	NewDesignerActorTransform.SetRotation(DesignerActorRotation.Quaternion());
-	
+	NewDesignerActorTransform.SetRotation(GetDesignerActorRotation().Quaternion());
 	SpawnedDesignerActor->SetActorTransform(NewDesignerActorTransform);
 	SpawnedDesignerActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
 	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
 }
 
 
-FRotator FDesignerEdMode::GetSwizzledDesignerActorRotation()
+FRotator FDesignerEdMode::GetDesignerActorRotation()
 {
 	FVector MouseDirection;
 	float MouseDistance;
@@ -490,21 +481,31 @@ FRotator FDesignerEdMode::GetSwizzledDesignerActorRotation()
 	bool bIsRightVectorSet = !SwizzledRightVector.IsNearlyZero();
 	bool bIsUpVectorSet = !SwizzledUpVector.IsNearlyZero();
 
+	FRotator DesignerActorRotation;
+
 	if (!bIsForwardVectorSet && bIsRightVectorSet && bIsUpVectorSet)
 	{
-		return FRotationMatrix::MakeFromZY(SwizzledUpVector, SwizzledRightVector).Rotator();
+		DesignerActorRotation = FRotationMatrix::MakeFromZY(SwizzledUpVector, SwizzledRightVector).Rotator();
 	}
 	else if (!bIsRightVectorSet && bIsForwardVectorSet && bIsUpVectorSet)
 	{
-		return FRotationMatrix::MakeFromZX(SwizzledUpVector, SwizzledForwardVector).Rotator();
+		DesignerActorRotation = FRotationMatrix::MakeFromZX(SwizzledUpVector, SwizzledForwardVector).Rotator();
 	}
 	else if (!bIsUpVectorSet && bIsForwardVectorSet && bIsRightVectorSet)
 	{
-		return FRotationMatrix::MakeFromXY(SwizzledForwardVector, SwizzledRightVector).Rotator();
+		DesignerActorRotation = FRotationMatrix::MakeFromXY(SwizzledForwardVector, SwizzledRightVector).Rotator();
 	}
 
-	// Return default rotation of everything else fails.
-	return FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+	// Default rotation of everything else fails.
+	DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+
+	FRotator SpawnRotationSnapped = DesignerActorRotation;
+	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
+	DesignerActorRotation.Roll = DesignerSettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
+	DesignerActorRotation.Pitch = DesignerSettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
+	DesignerActorRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
+
+	return DesignerActorRotation;
 }
 
 void FDesignerEdMode::UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld)
