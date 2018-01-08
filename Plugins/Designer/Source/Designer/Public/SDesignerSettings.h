@@ -35,6 +35,7 @@ class Error;
 class IDetailsView;
 class SErrorText;
 struct FPropertyAndParent;
+class UDesignerSettings;
 
 /**
  * 
@@ -55,6 +56,11 @@ protected:
 	bool GetDesignerSettingsIsEnabled() const;
 
 	bool GetIsPropertyVisible(const FPropertyAndParent& PropertyAndParent) const;
+
+private:
+	UDesignerSettings* DesignerSettings;
+
+	EVisibility AxisErrorVisibility() const;
 
 protected:
 	TSharedPtr<SErrorText> Error;

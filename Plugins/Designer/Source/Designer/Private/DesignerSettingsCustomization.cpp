@@ -36,24 +36,21 @@
 
 TSharedRef<IDetailCustomization> FDesignerSettingsCustomization::MakeInstance()
 {
-	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::MakeInstance"));
 	return MakeShareable(new FDesignerSettingsCustomization());
 }
 
 void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
-{
-	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsCustomization::CustomizeDetails"));
-	
+{	
 	FDesignerEdMode* DesignerEdMode = (FDesignerEdMode*)GLevelEditorModeTools().GetActiveMode(FDesignerEdMode::EM_DesignerEdModeId);
 
-	IDetailCategoryBuilder& PlacementSettingsCategory = DetailBuilder.EditCategory("PlacementSettings");
+	IDetailCategoryBuilder& SpawnSettingsCategory = DetailBuilder.EditCategory("SpawnSettings");
 
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SpawnLocationOffsetRelative));
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_X = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("X").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Y = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Y").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Z = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Z").ToSharedRef();
 	
-	PlacementSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetRelative)
+	SpawnSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetRelative)
 	.CustomWidget()
 	.NameContent()
 	[
@@ -80,7 +77,7 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Y = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Y").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Z = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Z").ToSharedRef();
 
-	PlacementSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetWorld)
+	SpawnSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetWorld)
 		.CustomWidget()
 		.NameContent()
 		[
@@ -92,14 +89,14 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		[
 			SNew(SVectorInputBox)
 			.bColorAxisLabels(true)
-		.AllowSpin(false)
-		.Font(DetailBuilder.GetDetailFont())
-		.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X; })
-		.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y; })
-		.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z; })
-		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X = Value; })
-		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y = Value; })
-		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z = Value; })
+			.AllowSpin(false)
+			.Font(DetailBuilder.GetDetailFont())
+			.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X; })
+			.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y; })
+			.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z; })
+			.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X = Value; })
+			.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y = Value; })
+			.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z = Value; })
 		];
 }
 

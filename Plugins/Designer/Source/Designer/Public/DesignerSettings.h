@@ -43,25 +43,25 @@ UENUM()
 enum class EAxisType : uint8
 {
 	/** None */
-	None = 0 UMETA(DisplayName = "None"),
+	None = 0x00 UMETA(DisplayName = "None"),
 
 	/** The forward vector */
-	Forward = 1 UMETA(DisplayName = "Forward (+X)"),
+	Forward = 0x02 UMETA(DisplayName = "Forward (+X)"),
 
 	/** The backward vector */
-	Backward = 2 UMETA(DisplayName = "Backward (-X)"),
+	Backward = 0x03 UMETA(DisplayName = "Backward (-X)"),
 
 	/** The right vector */
-	Right = 3 UMETA(DisplayName = "Right (+Y)"),
+	Right = 0x04 UMETA(DisplayName = "Right (+Y)"),
 
 	/** The left vector */
-	Left = 4 UMETA(DisplayName = "Left (-Y)"),
+	Left = 0x05 UMETA(DisplayName = "Left (-Y)"),
 
 	/** The up vector */
-	Up = 5 UMETA(DisplayName = "Up (+Z)"),
+	Up = 0x08 UMETA(DisplayName = "Up (+Z)"),
 
 	/** The down vector */
-	Down = 6 UMETA(DisplayName = "Down (-Z)")
+	Down = 0x09 UMETA(DisplayName = "Down (-Z)")
 };
 
 /**
@@ -74,55 +74,55 @@ class DESIGNER_API UDesignerSettings : public UObject
 
 public:
 	/** The spawn location offset in relative space */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	FVector SpawnLocationOffsetRelative;
 
 	/** The spawn rotation offset in world space */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	FVector SpawnLocationOffsetWorld;
 
 	/** Actor axis vector to align with the hit surface direction */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	EAxisType AxisToAlignWithNormal;
 
 	/** Actor axis vector to align with the cursor direction */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	EAxisType AxisToAlignWithCursor;
 
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationX;
 
 	/** Is the rotation y axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationY;
 
 	/** Is the rotation z axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationZ;
 
 	///** Choose the type of placement applied to the x axis of the rotation */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//EPlacementType RotationTypeX;
 
 	///** If the rotation type x is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//FVector2D RandomRotationMinMaxX;
 
 	///** Choose the type of placement applied to the y axis of the rotation */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//EPlacementType RotationTypeY;
 
 	///** If the rotation type y is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//FVector2D RandomRotationMinMaxY;
 
 	///** Choose the type of placement applied to the Z axis of the rotation */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//EPlacementType RotationTypeZ;
 
 	///** If the rotation type z is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "PlacementSettings", NonTransactional, EditAnywhere)
+	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	//FVector2D RandomRotationMinMaxZ;
 
 private:
