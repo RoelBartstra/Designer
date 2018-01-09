@@ -389,7 +389,7 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	float MouseDistance;
 	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
-	FVector NewScale = FVector(MouseDistance / DefaultDesignerActorExtent.X);
+	FVector NewScale = FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y));
 	if (NewScale.ContainsNaN())
 	{
 		NewScale = FVector::OneVector;
@@ -495,9 +495,11 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	{
 		DesignerActorRotation = FRotationMatrix::MakeFromXY(SwizzledForwardVector, SwizzledRightVector).Rotator();
 	}
-
-	// Default rotation of everything else fails.
-	DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+	else
+	{
+		// Default rotation of everything else fails.
+		DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+	}
 
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
