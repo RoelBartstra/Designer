@@ -36,11 +36,10 @@ Project Plugin
 Copy the Designer folder extracted from the zip file to the plugin folder fitting your needs.
 
 Open you project. The extra editor mode should now available. If the mode is not visible, open the Plugins window and check if the plugin is enabled under Editor Modes / Designer. If the plugin is disabled, enable it and restart the editor. 
-If the plugin is not showing up, close the editor and check if the plugin is installed in the correct directory. I the issues persists check if the plugin 
+If the plugin is not showing up, close the editor and check if the plugin is installed in the correct directory. If the issues persists check if your unreal engine version matches the plugin engines version mentioned at the top of this document.
 
+## FAQ
 
-
-
-* Unordered list can use asterisks
-- Or minuses
-+ Or pluses
+### It asks to recompile when I launch the project, what should I do?
+The plugin might not be compiled for your engine version or for your platform. If you have a C++ project and your plugin is in your project folder just hit recompile.
+If this does not work check to see if the engine version matches the plugin engine version mentioned at the top of this document. If your engine version is older it will most likely not work. Download a matching engine version and try again.
