@@ -1,7 +1,14 @@
 # Designer Manual
 ###### manual version 1.0
 ###### plugin version 0.1.0
-###### engine version 4.18
+###### unreal engine version 4.18
+
+## Version
+|         	 		 | Version       	|
+| -------------------|:----------------:|
+| Manual	         | 1.0 				|
+| Designer Plugin    | 0.1.0	     	|
+| Unreal Engine      | 4.18		     	|
 
 ## Introduction
 Designer is an Editor Mode created as a plugin for Unreal Engine 4. For more in depth information about plugins inside Unreal Engine 4 read their [documentation](https://docs.unrealengine.com/latest/INT/Programming/Plugins/).
