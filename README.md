@@ -3,7 +3,7 @@
 ###### Designer Plugin Version 0.1.0
 ###### Unreal Engine Version 4.18
 
-# Table of Contents
+## Table of Contents
 1. [Introduction](#introduction)
 2. [Download](#download)
 3. [Install](#install)
