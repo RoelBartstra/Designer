@@ -1,14 +1,12 @@
-# Designer Manual
-###### manual version 1.0
-###### plugin version 0.1.0
-###### unreal engine version 4.18
+     # Designer Manual
+###### Manual Version 1.0
+###### Designer Plugin Version 0.1.0
+###### Unreal Engine Version 4.18
 
-## Version
-|         	 		 | Version       	|
-| -------------------|:----------------:|
-| Manual	         | 1.0 				|
-| Designer Plugin    | 0.1.0	     	|
-| Unreal Engine      | 4.18		     	|
+# Table of Contents
+1. [Introduction](#introduction)
+2. [Download](#download)
+3. [Install](#install)
 
 ## Introduction
 Designer is an Editor Mode created as a plugin for Unreal Engine 4. For more in depth information about plugins inside Unreal Engine 4 read their [documentation](https://docs.unrealengine.com/latest/INT/Programming/Plugins/).
@@ -26,14 +24,14 @@ Plugins are always located in your plugin's directory. In order for plugins to b
 Pasting the Designer folder inside the Engine plugins directory will expose this plugin to all your projects. Any time a new engine version is installed the plugin has to be moved to the new engine versions' folder.
 
 ```
-**Engine Plugin**
+Engine Plugin
 /UE4 Root/Engine/Plugins/Designer/
 ```
 
 ​Pasting the Designer folder inside the Project plugins directory will expose this plugin only to the specified project.
 
 ```
-**Project Plugin**
+Project Plugin
 /My Project/Plugins/Designer/
 ```
 
