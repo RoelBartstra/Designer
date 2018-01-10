@@ -61,7 +61,7 @@ While in the designer editor mode:
 
 
 ## Support
-Any questions can be posted on the [unreal engine forum](https://www.unrealengineer.com/designer).
+Any questions can be posted on the [unreal engine forum](https://forums.unrealengine.com/community/community-content-tools-and-tutorials/1410865-free-designer-editor-mode-plugin).
 
 
 ## FAQ
