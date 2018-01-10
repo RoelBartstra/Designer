@@ -60,6 +60,9 @@ While in the designer editor mode:
 5. Release the left mouse button.
 
 
+## Support
+Any questions can be posted on the [unreal engine forum](https://www.unrealengineer.com/designer).
+
 
 ## FAQ
 ### It asks to recompile when I launch the project, what should I do?
