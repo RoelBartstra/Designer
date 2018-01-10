@@ -29,14 +29,14 @@ Pasting the Designer folder inside the Engine plugins directory will expose this
 
 ```
 Engine Plugin
-/UE4 Root/Engine/Plugins/Designer/
+/UE4 Root/Engine/Plugins/
 ```
 
 ​Pasting the Designer folder inside the Project plugins directory will expose this plugin only to the specified project.
 
 ```
 Project Plugin
-/My Project/Plugins/Designer/
+/My Project/Plugins/
 ```
 
 Copy the Designer folder extracted from the zip file to the plugin folder fitting your needs.
