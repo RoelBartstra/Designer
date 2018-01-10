@@ -38,6 +38,7 @@ Engine Plugin
 Project Plugin
 /My Project/Plugins/
 ```
+The plugins folder in your project might not exist yet if you do not use any other project based plugins. If this is the case, create the folder manually.
 
 Copy the Designer folder extracted from the zip file to the plugin folder fitting your needs.
 
