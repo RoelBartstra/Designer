@@ -128,10 +128,11 @@ void FDesignerEdMode::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 		SpawnTracePlane.FindBestAxisVectors(Axis1, Axis2);
 		FVector Direction;
 		float Length;
-		(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(Direction, Length);
-		DrawCircle(PDI, MouseDownWorldTransform.GetLocation(), Axis1, Axis2, FLinearColor::Blue, Length, 32, 0);
-		PDI->DrawLine(MouseDownWorldTransform.GetLocation(), MousePlaneWorldLocation, FLinearColor::Green, 1);
-		PDI->DrawPoint(MousePlaneWorldLocation, FLinearColor::Red, 4, 2);
+		(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(Direction, Length);
+		DrawCircle(PDI, CursorInputDownWorldTransform.GetLocation(), Axis1, Axis2, FLinearColor::Yellow, Length, 32, 0, 5.F, SDPG_Foreground, false);
+		//DrawDirectionalArrow(PDI,)
+		PDI->DrawLine(CursorInputDownWorldTransform.GetLocation(), CursorPlaneWorldLocation, FLinearColor::Green, 1);
+		PDI->DrawPoint(CursorPlaneWorldLocation, FLinearColor::Red, 4, 2);
 	}
 }
 
@@ -236,17 +237,17 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 						if (!RecalculateMouseDownWorldTransform(ViewportClient, Viewport))
 							return bHandled;
 						
-						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &MouseDownWorldTransform);
+						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &CursorInputDownWorldTransform);
 						
 						DefaultDesignerActorExtent = SpawnedDesignerActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
 						
 						// Properly reset data.
-						MousePlaneWorldLocation = MouseDownWorldTransform.GetLocation();
+						CursorPlaneWorldLocation = CursorInputDownWorldTransform.GetLocation();
 						SpawnTracePlane = FPlane();
 						
 						FTransform SpawnVisualizerTransform = FTransform();
-						SpawnVisualizerTransform.SetLocation(MouseDownWorldTransform.GetLocation());
-						SpawnVisualizerTransform.SetRotation(FRotationMatrix::MakeFromZX(MouseDownWorldTransform.GetRotation().GetUpVector(), FVector::ForwardVector).ToQuat());
+						SpawnVisualizerTransform.SetLocation(CursorInputDownWorldTransform.GetLocation());
+						SpawnVisualizerTransform.SetRotation(FRotationMatrix::MakeFromZX(CursorInputDownWorldTransform.GetRotation().GetUpVector(), FVector::ForwardVector).ToQuat());
 						SpawnVisualizerTransform.SetScale3D(FVector::OneVector * 10000);
 						SpawnVisualizerComponent->SetRelativeTransform(SpawnVisualizerTransform);
 
@@ -256,6 +257,8 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 						}
 
 						UpdateDesignerActorTransform();
+
+						UpdateSpawnVisualizerMaterialParameters();
 
 						bHandled = true;
 					}
@@ -294,8 +297,10 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 
 	UpdateDesignerActorTransform();
 
-	bHandled = true;
+	UpdateSpawnVisualizerMaterialParameters();
 
+	bHandled = true;
+	
 	return bHandled;
 }
 
@@ -308,6 +313,19 @@ bool FDesignerEdMode::UsesTransformWidget() const
 bool FDesignerEdMode::UsesToolkits() const
 {
 	return true;
+}
+
+bool FDesignerEdMode::UpdateSpawnVisualizerMaterialParameters()
+{
+	if (SpawnVisualizerMID)
+	{
+		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(CursorInputDownWorldTransform.GetLocation()));
+		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation));
+
+		return true;
+	}
+
+	return false;
 }
 
 bool FDesignerEdMode::RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport)
@@ -353,7 +371,7 @@ bool FDesignerEdMode::RecalculateMouseDownWorldTransform(FEditorViewportClient* 
 	MouseDownWorldRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : MouseDownWorldRotation.Yaw;
 	NewMouseDownTransform.SetRotation(MouseDownWorldRotation.Quaternion());
 
-	MouseDownWorldTransform = NewMouseDownTransform;
+	CursorInputDownWorldTransform = NewMouseDownTransform;
 
 	return true;
 }
@@ -375,19 +393,19 @@ bool FDesignerEdMode::RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewpo
 	FVector TraceDirection = MouseViewportRay.GetDirection();
 	FVector TraceEndLocation = TraceStartLocation + TraceDirection * WORLD_MAX;
 	
-	SpawnTracePlane = FPlane(MouseDownWorldTransform.GetLocation(), MouseDownWorldTransform.GetRotation().GetUpVector());
-	MousePlaneWorldLocation = FMath::LinePlaneIntersection(TraceStartLocation, TraceEndLocation, SpawnTracePlane);
+	SpawnTracePlane = FPlane(CursorInputDownWorldTransform.GetLocation(), CursorInputDownWorldTransform.GetRotation().GetUpVector());
+	CursorPlaneWorldLocation = FMath::LinePlaneIntersection(TraceStartLocation, TraceEndLocation, SpawnTracePlane);
 
 	return true;
 }
 
 void FDesignerEdMode::UpdateDesignerActorTransform()
 {
-	FTransform NewDesignerActorTransform = MouseDownWorldTransform;
+	FTransform NewDesignerActorTransform = CursorInputDownWorldTransform;
 
 	FVector MouseDirection;
 	float MouseDistance;
-	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
+	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
 	FVector NewScale = FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y));
 	if (NewScale.ContainsNaN())
@@ -414,10 +432,10 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 {
 	FVector MouseDirection;
 	float MouseDistance;
-	(MousePlaneWorldLocation - MouseDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
+	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 
-	FVector ForwardVector = DesignerSettings->AxisToAlignWithCursor == EAxisType::None ? MouseDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
-	FVector UpVector = MouseDownWorldTransform.GetRotation().GetUpVector();
+	FVector ForwardVector = DesignerSettings->AxisToAlignWithCursor == EAxisType::None ? CursorInputDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
+	FVector UpVector = CursorInputDownWorldTransform.GetRotation().GetUpVector();
 	
 	// if they're almost same, we need to find arbitrary vector
 	if (FMath::IsNearlyEqual(FMath::Abs(ForwardVector | UpVector), 1.f))

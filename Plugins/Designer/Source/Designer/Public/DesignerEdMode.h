@@ -47,10 +47,10 @@ private:
 	FPlane SpawnTracePlane;
 
 	// The world transform stored on mouse click down.
-	FTransform MouseDownWorldTransform;
+	FTransform CursorInputDownWorldTransform;
 
 	/* When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane. */
-	FVector MousePlaneWorldLocation;
+	FVector CursorPlaneWorldLocation;
 
 public:
 	FDesignerEdMode();
@@ -95,6 +95,9 @@ public:
 	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;
+
+	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful. */
+	bool UpdateSpawnVisualizerMaterialParameters();
 
 	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful. */
 	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
