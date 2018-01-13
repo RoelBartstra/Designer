@@ -38,7 +38,7 @@
 
 #define LOCTEXT_NAMESPACE "DesignerEdMode"
 
-//BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
+BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesignerEdModeToolkit> InParentToolkit)
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
@@ -94,7 +94,7 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 		]
 	];
 }
-//END_SLATE_FUNCTION_BUILD_OPTIMIZATION
+END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 EVisibility SDesignerSettings::AxisErrorVisibility() const
 {
