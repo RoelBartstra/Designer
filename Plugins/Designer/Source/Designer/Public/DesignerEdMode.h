@@ -62,8 +62,8 @@ public:
 	bool CanSpawnActor;
 	UDesignerSettings* DesignerSettings;
 
-	/** The selected actor according to designer */
-	AActor* SpawnedDesignerActor;
+	/** The actor currently controlled by the designer editor mode */
+	AActor* ControlledActor;
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	FVector DefaultDesignerActorExtent;
