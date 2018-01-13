@@ -122,18 +122,19 @@ void FDesignerEdMode::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 {
 	FEdMode::Render(View, Viewport, PDI);
 	
-	if (SpawnedDesignerActor)
-	{
-		FVector Axis1, Axis2;
-		SpawnTracePlane.FindBestAxisVectors(Axis1, Axis2);
-		FVector Direction;
-		float Length;
-		(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(Direction, Length);
-		DrawCircle(PDI, CursorInputDownWorldTransform.GetLocation(), Axis1, Axis2, FLinearColor::Yellow, Length, 32, 0, 5.F, SDPG_Foreground, false);
+	//if (SpawnedDesignerActor)
+	//{
+		//FVector Axis1, Axis2;
+		//SpawnTracePlane.FindBestAxisVectors(Axis1, Axis2);
+		//FVector Direction;
+		//float Length;
+		//(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(Direction, Length);
+		//float CircleThickness = Length * 0.1F;
+		//DrawCircle(PDI, CursorInputDownWorldTransform.GetLocation(), Axis1, Axis2, FLinearColor::White, Length, 32, 0, CircleThickness, SDPG_Foreground, false);
 		//DrawDirectionalArrow(PDI,)
-		PDI->DrawLine(CursorInputDownWorldTransform.GetLocation(), CursorPlaneWorldLocation, FLinearColor::Green, 1);
-		PDI->DrawPoint(CursorPlaneWorldLocation, FLinearColor::Red, 4, 2);
-	}
+		//PDI->DrawLine(CursorInputDownWorldTransform.GetLocation(), CursorPlaneWorldLocation, FLinearColor::Green, 1);
+		//PDI->DrawPoint(CursorPlaneWorldLocation, FLinearColor::Red, 4, 2);
+	//}
 }
 
 bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport)
@@ -321,6 +322,10 @@ bool FDesignerEdMode::UpdateSpawnVisualizerMaterialParameters()
 	{
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(CursorInputDownWorldTransform.GetLocation()));
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation));
+		
+		EAxisType PositiveAxis = (EAxisType)(~1 & (int)DesignerSettings->AxisToAlignWithCursor);
+		FLinearColor ForwardVectorColor = PositiveAxis == EAxisType::Up ? FLinearColor::Blue : PositiveAxis == EAxisType::Right ? FLinearColor::Green : FLinearColor::Red;
+		SpawnVisualizerMID->SetVectorParameterValue(FName("ForwardAxisColor"), ForwardVectorColor);
 
 		return true;
 	}
