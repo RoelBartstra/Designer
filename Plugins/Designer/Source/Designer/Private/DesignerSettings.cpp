@@ -31,5 +31,9 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, bSnapToGridRotationY(false)
 	, bSnapToGridRotationZ(false)
 	, bScaleBoundsTowardsCursor(true)
+	, bApplyRandomRotation(false)
+	, RandomRotationMinMaxX(FVector2D(0.F, 360.F))
+	, RandomRotationMinMaxY(FVector2D(0.F, 360.F))
+	, RandomRotationMinMaxZ(FVector2D(0.F, 360.F))
 {
 }

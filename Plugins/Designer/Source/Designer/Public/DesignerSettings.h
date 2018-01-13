@@ -104,6 +104,22 @@ public:
 	/** Scale the bounds of the mesh towards the cursor location */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bScaleBoundsTowardsCursor;
+	
+	/** Scale the bounds of the mesh towards the cursor location */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bApplyRandomRotation;
+	
+	/** Random rotation offset applied to the x axis rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FVector2D RandomRotationMinMaxX;
+
+	/** Random rotation offset applied to the y axis rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FVector2D RandomRotationMinMaxY;
+
+	/** Random rotation offset applied to z axis the rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FVector2D RandomRotationMinMaxZ;
 
 private:
 	FDesignerEdMode* ParentEdMode;

@@ -37,20 +37,23 @@ public:
 	const static FEditorModeID EM_DesignerEdModeId;
 
 private:
-	/** The static mesh of the Spawn visualizer component. */
+	/** The static mesh of the Spawn visualizer component */
 	UStaticMeshComponent* SpawnVisualizerComponent;
 
-	/** The material instance dynamic of the Spawn visualizer component. */
+	/** The material instance dynamic of the Spawn visualizer component */
 	UMaterialInstanceDynamic* SpawnVisualizerMID;
 
-	/** The plane we trace against when transforming the placed actor. */
+	/** The plane we trace against when transforming the placed actor */
 	FPlane SpawnTracePlane;
 
-	// The world transform stored on mouse click down.
+	/** The world transform stored on mouse click down */
 	FTransform CursorInputDownWorldTransform;
 
-	/* When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane. */
+	/** When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane */
 	FVector CursorPlaneWorldLocation;
+
+	/** The random rotation applied to the designer actors */
+	FRotator RandomRotationOffset;
 
 public:
 	FDesignerEdMode();
@@ -59,10 +62,10 @@ public:
 	bool CanSpawnActor;
 	UDesignerSettings* DesignerSettings;
 
-	/** The selected actor according to designer. */
+	/** The selected actor according to designer */
 	AActor* SpawnedDesignerActor;
 
-	/** The local box extent of the selected designer actor in cm when scale is uniform 1. */
+	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	FVector DefaultDesignerActorExtent;
 
 	/** FGCObject interface */
@@ -73,7 +76,7 @@ public:
 	virtual void Enter() override;
 	virtual void Exit() override;
 
-	/** Draws translucent polygons on brushes and volumes. */
+	/** Draws translucent polygons on brushes and volumes */
 	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI);
 		
 	bool LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport);
@@ -90,26 +93,34 @@ public:
 	 * @return	true if input was handled
 	 */
 	virtual bool CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 MouseX, int32 MouseY);
-	
+
+	/** If the Edmode is handling its own mouse deltas, it can disable the MouseDeltaTacker */
+	virtual bool DisallowMouseDeltaTracking() const;
+
 	bool UsesTransformWidget() const;
 	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;
 
-	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful. */
+	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
 	bool UpdateSpawnVisualizerMaterialParameters();
 
-	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful. */
+	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful */
 	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
-	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful. */
+	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
 	bool RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
-	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset. */
+	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
 	void UpdateDesignerActorTransform();
 
 private:
-	FRotator GetDesignerActorRotation();
-	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
+	/** Generate new random rotation offset */
+	void RefreshRandomRotationOffset();
 
+	/** Get the designer actor rotation with all settings applied to it */
+	FRotator GetDesignerActorRotation();
+
+	/** Update the data from the material instance used to visualize the spawn data to the current settings */
+	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
 };

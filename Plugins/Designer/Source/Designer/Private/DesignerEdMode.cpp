@@ -157,10 +157,23 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		if (Event == IE_Pressed)
 		{
 			CanSpawnActor = true;
+
+			bHandled = true;
 		}
 		else if (Event == IE_Released)
 		{
 			CanSpawnActor = false;
+
+			bHandled = true;
+		}
+
+		if (Event == IE_Pressed && SpawnedDesignerActor != nullptr)
+		{
+			RefreshRandomRotationOffset();
+
+			UpdateDesignerActorTransform();
+
+			bHandled = true;
 		}
 	}
 	
@@ -257,6 +270,8 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 							SpawnVisualizerComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
 						}
 
+						RefreshRandomRotationOffset();
+
 						UpdateDesignerActorTransform();
 
 						UpdateSpawnVisualizerMaterialParameters();
@@ -293,7 +308,7 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 
 	if (SpawnedDesignerActor == nullptr)
 		return bHandled;
-	
+
 	RecalculateMouseSpawnTracePlaneWorldLocation(ViewportClient, Viewport);
 
 	UpdateDesignerActorTransform();
@@ -301,8 +316,13 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 	UpdateSpawnVisualizerMaterialParameters();
 
 	bHandled = true;
-	
+
 	return bHandled;
+}
+
+bool FDesignerEdMode::DisallowMouseDeltaTracking() const
+{
+	return SpawnedDesignerActor != nullptr;
 }
 
 bool FDesignerEdMode::UsesTransformWidget() const
@@ -433,6 +453,14 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
 }
 
+void FDesignerEdMode::RefreshRandomRotationOffset()
+{
+	RandomRotationOffset = FRotator( // Pitch, Yaw, Roll = Y, Z, X.
+		FMath::RandRange(DesignerSettings->RandomRotationMinMaxY.X, DesignerSettings->RandomRotationMinMaxY.Y),
+		FMath::RandRange(DesignerSettings->RandomRotationMinMaxZ.X, DesignerSettings->RandomRotationMinMaxZ.Y),
+		FMath::RandRange(DesignerSettings->RandomRotationMinMaxX.X, DesignerSettings->RandomRotationMinMaxX.Y)
+	);
+}
 
 FRotator FDesignerEdMode::GetDesignerActorRotation()
 {
@@ -523,6 +551,12 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	{
 		// Default rotation of everything else fails.
 		DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+	}
+
+	// Apply the generated random rotation offset if the user has set the bApplyRandomRotation setting.
+	if (DesignerSettings->bApplyRandomRotation)
+	{
+		DesignerActorRotation = FRotator(DesignerActorRotation.Quaternion() * RandomRotationOffset.Quaternion());
 	}
 
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
