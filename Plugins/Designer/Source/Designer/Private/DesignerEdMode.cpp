@@ -412,7 +412,8 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	float MouseDistance;
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
-	FVector NewScale = FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y));
+	FVector NewScale = DesignerSettings->bScaleBoundsTowardsCursor ? FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y)) : FVector::OneVector;
+
 	if (NewScale.ContainsNaN())
 	{
 		NewScale = FVector::OneVector;

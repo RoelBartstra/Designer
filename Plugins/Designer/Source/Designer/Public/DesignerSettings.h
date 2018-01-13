@@ -100,30 +100,10 @@ public:
 	/** Is the rotation z axis snapped to the grid set in the viewport grid settings */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationZ;
-
-	///** Choose the type of placement applied to the x axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeX;
-
-	///** If the rotation type x is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxX;
-
-	///** Choose the type of placement applied to the y axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeY;
-
-	///** If the rotation type y is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxY;
-
-	///** Choose the type of placement applied to the Z axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeZ;
-
-	///** If the rotation type z is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxZ;
+	
+	/** Scale the bounds of the mesh towards the cursor location */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bScaleBoundsTowardsCursor;
 
 private:
 	FDesignerEdMode* ParentEdMode;

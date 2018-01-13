@@ -30,11 +30,6 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, bSnapToGridRotationX(false)
 	, bSnapToGridRotationY(false)
 	, bSnapToGridRotationZ(false)
-	//, RotationTypeX(EPlacementType::Cursor)
-	//, RandomRotationMinMaxX(0, 360)
-	//, RotationTypeY(EPlacementType::Cursor)
-	//, RandomRotationMinMaxY(0, 360)
-	//, RotationTypeZ(EPlacementType::Random)
-	//, RandomRotationMinMaxZ(0, 360)
+	, bScaleBoundsTowardsCursor(true)
 {
 }
