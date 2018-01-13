@@ -170,6 +170,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		if (Event == IE_Pressed && SpawnedDesignerActor != nullptr)
 		{
 			RefreshRandomRotationOffset();
+			DesignerSettings->RandomScaleX.RegenerateRandomValue();
+			DesignerSettings->RandomScaleY.RegenerateRandomValue();
+			DesignerSettings->RandomScaleZ.RegenerateRandomValue();
 
 			UpdateDesignerActorTransform();
 
@@ -271,6 +274,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 						}
 
 						RefreshRandomRotationOffset();
+						DesignerSettings->RandomScaleX.RegenerateRandomValue();
+						DesignerSettings->RandomScaleY.RegenerateRandomValue();
+						DesignerSettings->RandomScaleZ.RegenerateRandomValue();
 
 						UpdateDesignerActorTransform();
 
@@ -432,7 +438,25 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	float MouseDistance;
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
-	FVector NewScale = DesignerSettings->bScaleBoundsTowardsCursor ? FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y)) : FVector::OneVector;
+	FVector RandomScale = FVector::OneVector;
+	if (DesignerSettings->bApplyRandomScale)
+	{
+		RandomScale.X = DesignerSettings->RandomScaleX.GetCurrentRandomValue();
+		RandomScale.Y = DesignerSettings->RandomScaleY.GetCurrentRandomValue();
+		RandomScale.Z = DesignerSettings->RandomScaleZ.GetCurrentRandomValue();
+
+		// If the object also scales towards the mouse we use the randoms scale as a ratio
+		if (DesignerSettings->bScaleBoundsTowardsCursor)
+		{
+			RandomScale = RandomScale / FMath::Max(RandomScale.X, FMath::Max(RandomScale.Y, RandomScale.Z));
+		}
+	}
+
+	FVector NewScale = RandomScale;
+	if (DesignerSettings->bScaleBoundsTowardsCursor)
+	{
+		NewScale = FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y)) * RandomScale;
+	}
 
 	if (NewScale.ContainsNaN())
 	{
@@ -440,10 +464,10 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultDesignerActorExtent.ToString());
 	}
 
-	// Make sure the scale won't be to close to 0.
-	NewScale.X = FMath::Max(NewScale.X, 0.0001F);
-	NewScale.Y = FMath::Max(NewScale.Y, 0.0001F);
-	NewScale.Z = FMath::Max(NewScale.Z, 0.0001F);
+	// Make sure the scale won't be too close to 0.
+	//NewScale.X = FMath::Max(NewScale.X, 0.00001F);
+	//NewScale.Y = FMath::Max(NewScale.Y, 0.00001F);
+	//NewScale.Z = FMath::Max(NewScale.Z, 0.00001F);
 
 	NewDesignerActorTransform.SetScale3D(NewScale);
 	
