@@ -1,22 +1,26 @@
-//  Copyright 2018 Roel Bartstra.
-
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
-
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+/**
+ * MIT License
+ * 
+ * Copyright(c) 2018 RoelBartstra
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files(the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions :
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #pragma once
 
@@ -25,19 +29,6 @@
 #include "DesignerSettings.generated.h"
 
 class FDesignerEdMode;
-
-//UENUM()
-//enum class EPlacementType : uint8
-//{
-//	/** Place the object fixed */
-//	Fixed = 0 UMETA(DisplayName = "Fixed"),
-//
-//	/** Place the object using the mouse */
-//	Cursor = 1 UMETA(DisplayName = "Mouse"),
-//
-//	/** Place the object randomly within the given min max parameters */
-//	Random = 2 UMETA(DisplayName = "Random")
-//};
 
 UENUM()
 enum class EAxisType : uint8
@@ -68,7 +59,7 @@ enum class EAxisType : uint8
  * A random float within a min max range
  * Option for randomly negating the value
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FRandomMinMaxFloat
 {
 	GENERATED_BODY()
@@ -130,11 +121,11 @@ class DESIGNER_API UDesignerSettings : public UObject
 public:
 	/** The spawn location offset in relative space */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	FVector SpawnLocationOffsetRelative;
+	FVector RelativeLocationOffset;
 
 	/** The spawn rotation offset in world space */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	FVector SpawnLocationOffsetWorld;
+	FVector WorldLocationOffset;
 
 	/** Actor axis vector to align with the hit surface direction */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
@@ -162,15 +153,15 @@ public:
 	
 	/** Random rotation offset applied to the x axis rotation matrix on spawn */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FVector2D RandomRotationMinMaxX;
+	FRandomMinMaxFloat RandomRotationX;
 
 	/** Random rotation offset applied to the y axis rotation matrix on spawn */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FVector2D RandomRotationMinMaxY;
+	FRandomMinMaxFloat RandomRotationY;
 
 	/** Random rotation offset applied to z axis the rotation matrix on spawn */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FVector2D RandomRotationMinMaxZ;
+	FRandomMinMaxFloat RandomRotationZ;
 
 	/** Scale the bounds of the mesh towards the cursor location */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
@@ -191,6 +182,12 @@ public:
 	/** Random scale for z axis */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxFloat RandomScaleZ;
+
+	/**
+	 * Always returns the positive axis of the current selected AxisToAlignWithCursor
+	  * i.e. Backward becomes Forward while Up stays Up.
+	*/
+	FORCEINLINE EAxisType GetPositiveAxisToAlignWithCursor() { return (EAxisType)(~1 & (int)AxisToAlignWithCursor); }
 
 private:
 	FDesignerEdMode* ParentEdMode;
