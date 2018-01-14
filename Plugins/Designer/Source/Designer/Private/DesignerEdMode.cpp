@@ -354,9 +354,13 @@ bool FDesignerEdMode::UpdateSpawnVisualizerMaterialParameters()
 	if (SpawnVisualizerMID)
 	{
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(CursorInputDownWorldTransform.GetLocation()));
-		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation));
 		
-		EAxisType PositiveAxis = GetDesignerSettings()->GetPositiveAxisToAlignWithCursor();
+		FVector Extent = DefaultDesignerActorExtent * ControlledActor->GetActorScale3D();
+		EAxisType PositiveAxis = DesignerSettings->GetPositiveAxisToAlignWithCursor();
+		float ActorRadius = PositiveAxis == EAxisType::Right ? Extent.Y : PositiveAxis == EAxisType::Up ? Extent.Z : Extent.X;
+		
+		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation.X, CursorPlaneWorldLocation.Y, CursorPlaneWorldLocation.Z, ActorRadius));
+
 		FLinearColor ForwardVectorColor = PositiveAxis == EAxisType::Up ? FLinearColor::Blue : PositiveAxis == EAxisType::Right ? FLinearColor::Green : FLinearColor::Red;
 		SpawnVisualizerMID->SetVectorParameterValue(FName("ForwardAxisColor"), ForwardVectorColor);
 
@@ -441,10 +445,10 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 {
 	FTransform NewDesignerActorTransform = CursorInputDownWorldTransform;
 
-	FVector MouseDirection;
-	float MouseDistance;
-	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
-	
+	FVector CursorDirection;
+	float CursorDistance;
+	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(CursorDirection, CursorDistance);
+
 	FVector NewScale = FVector::OneVector;
 	if (GetDesignerSettings()->bApplyRandomScale)
 	{
@@ -459,20 +463,18 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 
 	if (GetDesignerSettings()->bScaleBoundsTowardsCursor)
 	{
-		// TODO: Scale should be based extent axis pointing towards the mouse.
-
 		EAxisType PositiveAxis = GetDesignerSettings()->GetPositiveAxisToAlignWithCursor();
-		float BoundsUSedForScale;
+		float BoundsUsedForScale;
 		if (PositiveAxis == EAxisType::Forward)
-			BoundsUSedForScale = DefaultDesignerActorExtent.X;
+			BoundsUsedForScale = DefaultDesignerActorExtent.X;
 		else if (PositiveAxis == EAxisType::Right)
-			BoundsUSedForScale = DefaultDesignerActorExtent.Y;
+			BoundsUsedForScale = DefaultDesignerActorExtent.Y;
 		else if (PositiveAxis == EAxisType::Up)
-			BoundsUSedForScale = DefaultDesignerActorExtent.Z;
+			BoundsUsedForScale = DefaultDesignerActorExtent.Z;
 		else
-			BoundsUSedForScale = FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y);
+			BoundsUsedForScale = FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y);
 
-		NewScale *= FVector(MouseDistance / BoundsUSedForScale);
+		NewScale *= FVector(CursorDistance / BoundsUsedForScale);
 	}
 
 	if (NewScale.ContainsNaN())
@@ -631,11 +633,4 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	DesignerActorRotation.Yaw = GetDesignerSettings()->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 
 	return DesignerActorRotation;
-}
-
-void FDesignerEdMode::UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld)
-{
-	FLinearColor CursorData = FLinearColor(MouseLocationWorld.X, MouseLocationWorld.Y, MouseLocationWorld.Z, 0);
-	const FName CursorDataParameterName("CursorData");
-	SpawnVisualizerMID->SetVectorParameterValue(CursorDataParameterName, CursorData);
 }

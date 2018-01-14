@@ -139,7 +139,4 @@ private:
 
 	/** Get the designer actor rotation with all settings applied to it */
 	FRotator GetDesignerActorRotation();
-
-	/** Update the data from the material instance used to visualize the spawn data to the current settings */
-	void UpdateSpawnVisualizerMaterialData(FVector MouseLocationWorld);
 };
