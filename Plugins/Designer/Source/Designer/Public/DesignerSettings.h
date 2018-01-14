@@ -183,6 +183,12 @@ public:
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxFloat RandomScaleZ;
 
+	/**
+	 * Always returns the positive axis of the current selected AxisToAlignWithCursor
+	  * i.e. Backward becomes Forward while Up stays Up.
+	*/
+	FORCEINLINE EAxisType GetPositiveAxisToAlignWithCursor() { return (EAxisType)(~1 & (int)AxisToAlignWithCursor); }
+
 private:
 	FDesignerEdMode* ParentEdMode;
 

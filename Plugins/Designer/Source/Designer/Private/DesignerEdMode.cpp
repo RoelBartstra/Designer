@@ -126,6 +126,7 @@ void FDesignerEdMode::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 {
 	FEdMode::Render(View, Viewport, PDI);
 	
+	// Leave this here in case we use it again in the near future.
 	//if (SpawnedDesignerActor)
 	//{
 		//FVector Axis1, Axis2;
@@ -355,7 +356,7 @@ bool FDesignerEdMode::UpdateSpawnVisualizerMaterialParameters()
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(CursorInputDownWorldTransform.GetLocation()));
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation));
 		
-		EAxisType PositiveAxis = (EAxisType)(~1 & (int)GetDesignerSettings()->AxisToAlignWithCursor);
+		EAxisType PositiveAxis = GetDesignerSettings()->GetPositiveAxisToAlignWithCursor();
 		FLinearColor ForwardVectorColor = PositiveAxis == EAxisType::Up ? FLinearColor::Blue : PositiveAxis == EAxisType::Right ? FLinearColor::Green : FLinearColor::Red;
 		SpawnVisualizerMID->SetVectorParameterValue(FName("ForwardAxisColor"), ForwardVectorColor);
 
@@ -458,7 +459,20 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 
 	if (GetDesignerSettings()->bScaleBoundsTowardsCursor)
 	{
-		NewScale *= FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y));
+		// TODO: Scale should be based extent axis pointing towards the mouse.
+
+		EAxisType PositiveAxis = GetDesignerSettings()->GetPositiveAxisToAlignWithCursor();
+		float BoundsUSedForScale;
+		if (PositiveAxis == EAxisType::Forward)
+			BoundsUSedForScale = DefaultDesignerActorExtent.X;
+		else if (PositiveAxis == EAxisType::Right)
+			BoundsUSedForScale = DefaultDesignerActorExtent.Y;
+		else if (PositiveAxis == EAxisType::Up)
+			BoundsUSedForScale = DefaultDesignerActorExtent.Z;
+		else
+			BoundsUSedForScale = FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y);
+
+		NewScale *= FVector(MouseDistance / BoundsUSedForScale);
 	}
 
 	if (NewScale.ContainsNaN())
@@ -512,6 +526,10 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	FVector MouseDirection;
 	float MouseDistance;
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
+
+	// If the mouse is exactly at the CursorInputDownWorldTransform, which happens on mouse click down.
+	if (MouseDirection.IsNearlyZero())
+		MouseDirection = CursorInputDownWorldTransform.GetRotation().GetForwardVector();
 
 	FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? CursorInputDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
 	FVector UpVector = CursorInputDownWorldTransform.GetRotation().GetUpVector();
@@ -596,6 +614,7 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	{
 		// Default rotation of everything else fails
 		DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
+		UE_LOG(LogDesigner, Warning, TEXT("Falling back to default rotation."));
 	}
 
 	// Apply the generated random rotation offset if the user has set the bApplyRandomRotation setting
