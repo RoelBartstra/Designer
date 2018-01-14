@@ -64,6 +64,10 @@ enum class EAxisType : uint8
 	Down = 0x09 UMETA(DisplayName = "Down (-Z)")
 };
 
+/**
+ * A random float within a min max range
+ * Option for randomly negating the value
+ */
 USTRUCT()
 struct FRandomMinMaxFloat
 {
