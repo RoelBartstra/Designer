@@ -355,7 +355,7 @@ bool FDesignerEdMode::UpdateSpawnVisualizerMaterialParameters()
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(CursorInputDownWorldTransform.GetLocation()));
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation));
 		
-		EAxisType PositiveAxis = (EAxisType)(~1 & (int)DesignerSettings->AxisToAlignWithCursor);
+		EAxisType PositiveAxis = (EAxisType)(~1 & (int)GetDesignerSettings()->AxisToAlignWithCursor);
 		FLinearColor ForwardVectorColor = PositiveAxis == EAxisType::Up ? FLinearColor::Blue : PositiveAxis == EAxisType::Right ? FLinearColor::Green : FLinearColor::Red;
 		SpawnVisualizerMID->SetVectorParameterValue(FName("ForwardAxisColor"), ForwardVectorColor);
 
@@ -399,13 +399,13 @@ bool FDesignerEdMode::RecalculateMouseDownWorldTransform(FEditorViewportClient* 
 	
 	NewMouseDownTransform.SetLocation(ActorPositionTraceResult.Location);
 
-	FRotator MouseDownWorldRotation = FRotationMatrix::MakeFromZX(DesignerSettings->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : ActorPositionTraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
+	FRotator MouseDownWorldRotation = FRotationMatrix::MakeFromZX(GetDesignerSettings()->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : ActorPositionTraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
 
 	FRotator SpawnRotationSnapped = MouseDownWorldRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	MouseDownWorldRotation.Roll = DesignerSettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : MouseDownWorldRotation.Roll;
-	MouseDownWorldRotation.Pitch = DesignerSettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : MouseDownWorldRotation.Pitch;
-	MouseDownWorldRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : MouseDownWorldRotation.Yaw;
+	MouseDownWorldRotation.Roll = GetDesignerSettings()->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : MouseDownWorldRotation.Roll;
+	MouseDownWorldRotation.Pitch = GetDesignerSettings()->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : MouseDownWorldRotation.Pitch;
+	MouseDownWorldRotation.Yaw = GetDesignerSettings()->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : MouseDownWorldRotation.Yaw;
 	NewMouseDownTransform.SetRotation(MouseDownWorldRotation.Quaternion());
 
 	CursorInputDownWorldTransform = NewMouseDownTransform;
@@ -445,18 +445,18 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
 	FVector NewScale = FVector::OneVector;
-	if (DesignerSettings->bApplyRandomScale)
+	if (GetDesignerSettings()->bApplyRandomScale)
 	{
 		NewScale = GetRandomScale();
 
 		// If the object also scales towards the mouse we use the randoms scale as a ratio
-		if (DesignerSettings->bScaleBoundsTowardsCursor)
+		if (GetDesignerSettings()->bScaleBoundsTowardsCursor)
 		{
 			NewScale /= FMath::Max(NewScale.X, FMath::Max(NewScale.Y, NewScale.Z));
 		}
 	}
 
-	if (DesignerSettings->bScaleBoundsTowardsCursor)
+	if (GetDesignerSettings()->bScaleBoundsTowardsCursor)
 	{
 		NewScale *= FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y));
 	}
@@ -471,15 +471,15 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	
 	NewDesignerActorTransform.SetRotation(GetDesignerActorRotation().Quaternion());
 	ControlledActor->SetActorTransform(NewDesignerActorTransform);
-	ControlledActor->AddActorWorldOffset(DesignerSettings->WorldLocationOffset);
-	ControlledActor->AddActorLocalOffset(DesignerSettings->RelativeLocationOffset);
+	ControlledActor->AddActorWorldOffset(GetDesignerSettings()->WorldLocationOffset);
+	ControlledActor->AddActorLocalOffset(GetDesignerSettings()->RelativeLocationOffset);
 }
 
 void FDesignerEdMode::RegenerateRandomRotationOffset()
 {
-	DesignerSettings->RandomRotationX.RegenerateRandomValue();
-	DesignerSettings->RandomRotationY.RegenerateRandomValue();
-	DesignerSettings->RandomRotationZ.RegenerateRandomValue();
+	GetDesignerSettings()->RandomRotationX.RegenerateRandomValue();
+	GetDesignerSettings()->RandomRotationY.RegenerateRandomValue();
+	GetDesignerSettings()->RandomRotationZ.RegenerateRandomValue();
 }
 
 FRotator FDesignerEdMode::GetRandomRotationOffset() const
@@ -493,9 +493,9 @@ FRotator FDesignerEdMode::GetRandomRotationOffset() const
 
 void FDesignerEdMode::RegenerateRandomScale()
 {
-	DesignerSettings->RandomScaleX.RegenerateRandomValue();
-	DesignerSettings->RandomScaleY.RegenerateRandomValue();
-	DesignerSettings->RandomScaleZ.RegenerateRandomValue();
+	GetDesignerSettings()->RandomScaleX.RegenerateRandomValue();
+	GetDesignerSettings()->RandomScaleY.RegenerateRandomValue();
+	GetDesignerSettings()->RandomScaleZ.RegenerateRandomValue();
 }
 
 FVector FDesignerEdMode::GetRandomScale() const
@@ -513,7 +513,7 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	float MouseDistance;
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 
-	FVector ForwardVector = DesignerSettings->AxisToAlignWithCursor == EAxisType::None ? CursorInputDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
+	FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? CursorInputDownWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
 	FVector UpVector = CursorInputDownWorldTransform.GetRotation().GetUpVector();
 	
 	// if they're almost same, we need to find arbitrary vector
@@ -530,7 +530,7 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	FVector SwizzledRightVector = FVector::ZeroVector;
 	FVector SwizzledUpVector = FVector::ZeroVector;
 
-	switch (DesignerSettings->AxisToAlignWithNormal)
+	switch (GetDesignerSettings()->AxisToAlignWithNormal)
 	{
 	case EAxisType::Forward:
 		SwizzledForwardVector = UpVector;
@@ -552,7 +552,7 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 		break;
 	}
 
-	switch (DesignerSettings->AxisToAlignWithCursor)
+	switch (GetDesignerSettings()->AxisToAlignWithCursor)
 	{
 	case EAxisType::Backward:
 		SwizzledForwardVector = -ForwardVector;
@@ -599,7 +599,7 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	}
 
 	// Apply the generated random rotation offset if the user has set the bApplyRandomRotation setting
-	if (DesignerSettings->bApplyRandomRotation)
+	if (GetDesignerSettings()->bApplyRandomRotation)
 	{
 		DesignerActorRotation = FRotator(DesignerActorRotation.Quaternion() * GetRandomRotationOffset().Quaternion());
 	}
@@ -607,9 +607,9 @@ FRotator FDesignerEdMode::GetDesignerActorRotation()
 	// Snap the axes to the grid if the user has set bSnapToGridRotation
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	DesignerActorRotation.Roll = DesignerSettings->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
-	DesignerActorRotation.Pitch = DesignerSettings->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
-	DesignerActorRotation.Yaw = DesignerSettings->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
+	DesignerActorRotation.Roll = GetDesignerSettings()->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
+	DesignerActorRotation.Pitch = GetDesignerSettings()->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
+	DesignerActorRotation.Yaw = GetDesignerSettings()->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 
 	return DesignerActorRotation;
 }
