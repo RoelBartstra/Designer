@@ -1,22 +1,26 @@
-//  Copyright 2018 Roel Bartstra.
-
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
-
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+/**
+ * MIT License
+ * 
+ * Copyright(c) 2018 RoelBartstra
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files(the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions :
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #include "DesignerSettingsCustomization.h"
 #include "DesignerModule.h"
@@ -45,7 +49,7 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 
 	IDetailCategoryBuilder& SpawnSettingsCategory = DetailBuilder.EditCategory("SpawnSettings");
 
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SpawnLocationOffsetRelative));
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset));
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_X = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("X").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Y = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Y").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Z = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Z").ToSharedRef();
@@ -64,15 +68,15 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 		.bColorAxisLabels(true)
 		.AllowSpin(false)
 		.Font(DetailBuilder.GetDetailFont())
-		.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.X; })
-		.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Y; })
-		.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Z; })
-		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.X = Value; })
-		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Y = Value; })
-		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetRelative.Z = Value; })
+		.X_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.X; })
+		.Y_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Y; })
+		.Z_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Z; })
+		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.X = Value; })
+		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Y = Value; })
+		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Z = Value; })
 	];
 
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SpawnLocationOffsetWorld));
+	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset));
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_X = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("X").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Y = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Y").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Z = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Z").ToSharedRef();
@@ -91,12 +95,12 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 			.bColorAxisLabels(true)
 			.AllowSpin(false)
 			.Font(DetailBuilder.GetDetailFont())
-			.X_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X; })
-			.Y_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y; })
-			.Z_Lambda([=]() -> float { return DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z; })
-			.OnXChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.X = Value; })
-			.OnYChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Y = Value; })
-			.OnZChanged_Lambda([=](float Value) { DesignerEdMode->DesignerSettings->SpawnLocationOffsetWorld.Z = Value; })
+			.X_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.X; })
+			.Y_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Y; })
+			.Z_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Z; })
+			.OnXChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.X = Value; })
+			.OnYChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Y = Value; })
+			.OnZChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Z = Value; })
 		];
 }
 
