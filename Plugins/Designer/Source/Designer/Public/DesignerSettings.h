@@ -65,6 +65,61 @@ enum class EAxisType : uint8
 };
 
 /**
+ * A random float within a min max range
+ * Option for randomly negating the value
+ */
+USTRUCT()
+struct FRandomMinMaxFloat
+{
+	GENERATED_BODY()
+
+	/** The minimal value */
+	UPROPERTY(EditAnywhere)
+	float Min;
+
+	/** The maximum value */
+	UPROPERTY(EditAnywhere)
+	float Max;
+
+	/**
+	 * Is this value allowed to randomly flip the sign of the generated value?
+	 * i.e. if Min = 30 and Max = 30 the outcome can be either 30 or -30 when this is set to true
+	 */
+	UPROPERTY(EditAnywhere)
+	bool bRandomlyNegateValue;
+
+private:
+	/** The randomly generated value */
+	UPROPERTY()
+	float RandomValue;
+
+public:
+	FRandomMinMaxFloat()
+	{
+		this->Min = 0.F;
+		this->Max = 1.F;
+		this->bRandomlyNegateValue = false;
+
+		RegenerateRandomValue();
+	}
+
+	FRandomMinMaxFloat(float Min, float Max, bool bRandomlyNegateValue = false)
+	{
+		this->Min = Min;
+		this->Max = Max;
+		this->bRandomlyNegateValue = bRandomlyNegateValue;
+
+		RegenerateRandomValue();
+	}
+
+	/** Get the random value currently stored in this struct */
+	FORCEINLINE float GetCurrentRandomValue() { return RandomValue; }
+
+	/** Regenerates the random value and returns it. The value can also be retrieved later as well using GetCurrentRandomValue */
+	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomlyNegateValue ? -1.F : 1.F); }
+};
+
+/**
  * The settings shown the in editor mode details panel
  */
 UCLASS()
@@ -101,11 +156,7 @@ public:
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationZ;
 	
-	/** Scale the bounds of the mesh towards the cursor location */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	bool bScaleBoundsTowardsCursor;
-	
-	/** Scale the bounds of the mesh towards the cursor location */
+	/** Randomly rotates the mesh */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bApplyRandomRotation;
 	
@@ -120,6 +171,26 @@ public:
 	/** Random rotation offset applied to z axis the rotation matrix on spawn */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
 	FVector2D RandomRotationMinMaxZ;
+
+	/** Scale the bounds of the mesh towards the cursor location */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bScaleBoundsTowardsCursor;
+	
+	/** Randomly scale the mesh */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bApplyRandomScale;
+
+	/** Random scale for x axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleX;
+
+	/** Random scale for y axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleY;
+
+	/** Random scale for z axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleZ;
 
 private:
 	FDesignerEdMode* ParentEdMode;

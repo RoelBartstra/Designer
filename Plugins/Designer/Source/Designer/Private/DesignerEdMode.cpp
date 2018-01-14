@@ -90,7 +90,7 @@ void FDesignerEdMode::Enter()
 	FEdMode::Enter();
 
 	CanSpawnActor = false;
-	SpawnedDesignerActor = nullptr;
+	ControlledActor = nullptr;
 	
 	if (!Toolkit.IsValid() && UsesToolkits())
 	{
@@ -104,7 +104,7 @@ void FDesignerEdMode::Enter()
 void FDesignerEdMode::Exit()
 {
 	CanSpawnActor = false;
-	SpawnedDesignerActor = nullptr;
+	ControlledActor = nullptr;
 
 	if (Toolkit.IsValid())
 	{
@@ -141,7 +141,7 @@ bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewpor
 {
 	// Can not spawn actor any more after losing focus to make sure the user has to press ctrl to allow spawning actors.
 	CanSpawnActor = false;
-	SpawnedDesignerActor = nullptr;
+	ControlledActor = nullptr;
 
 	return FEdMode::LostFocus(ViewportClient, Viewport);
 }
@@ -167,9 +167,12 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			bHandled = true;
 		}
 
-		if (Event == IE_Pressed && SpawnedDesignerActor != nullptr)
+		if (Event == IE_Pressed && ControlledActor != nullptr)
 		{
 			RefreshRandomRotationOffset();
+			DesignerSettings->RandomScaleX.RegenerateRandomValue();
+			DesignerSettings->RandomScaleY.RegenerateRandomValue();
+			DesignerSettings->RandomScaleZ.RegenerateRandomValue();
 
 			UpdateDesignerActorTransform();
 
@@ -251,9 +254,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 						if (!RecalculateMouseDownWorldTransform(ViewportClient, Viewport))
 							return bHandled;
 						
-						SpawnedDesignerActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &CursorInputDownWorldTransform);
+						ControlledActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &CursorInputDownWorldTransform);
 						
-						DefaultDesignerActorExtent = SpawnedDesignerActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
+						DefaultDesignerActorExtent = ControlledActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
 						
 						// Properly reset data.
 						CursorPlaneWorldLocation = CursorInputDownWorldTransform.GetLocation();
@@ -271,6 +274,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 						}
 
 						RefreshRandomRotationOffset();
+						DesignerSettings->RandomScaleX.RegenerateRandomValue();
+						DesignerSettings->RandomScaleY.RegenerateRandomValue();
+						DesignerSettings->RandomScaleZ.RegenerateRandomValue();
 
 						UpdateDesignerActorTransform();
 
@@ -284,7 +290,12 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		/** Left mouse button released */
 		else if (Event == IE_Released)
 		{
-			SpawnedDesignerActor = nullptr;
+			if (ControlledActor != nullptr && FMath::IsNearlyZero(ControlledActor->GetActorScale3D().Size()))
+			{
+				ControlledActor->Destroy(false, false);
+			}
+
+			ControlledActor = nullptr;
 			DefaultDesignerActorExtent = FVector::ZeroVector;
 
 			if (SpawnVisualizerComponent->IsRegistered())
@@ -306,7 +317,7 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 {
 	bool bHandled = false;
 
-	if (SpawnedDesignerActor == nullptr)
+	if (ControlledActor == nullptr)
 		return bHandled;
 
 	RecalculateMouseSpawnTracePlaneWorldLocation(ViewportClient, Viewport);
@@ -322,13 +333,13 @@ bool FDesignerEdMode::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 
 bool FDesignerEdMode::DisallowMouseDeltaTracking() const
 {
-	return SpawnedDesignerActor != nullptr;
+	return ControlledActor != nullptr;
 }
 
 bool FDesignerEdMode::UsesTransformWidget() const
 {
 	// Only show transform widget when we are not spawning a new actor.
-	return SpawnedDesignerActor == nullptr;
+	return ControlledActor == nullptr;
 }
 
 bool FDesignerEdMode::UsesToolkits() const
@@ -432,7 +443,25 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 	float MouseDistance;
 	(CursorPlaneWorldLocation - CursorInputDownWorldTransform.GetLocation()).ToDirectionAndLength(MouseDirection, MouseDistance);
 	
-	FVector NewScale = DesignerSettings->bScaleBoundsTowardsCursor ? FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y)) : FVector::OneVector;
+	FVector RandomScale = FVector::OneVector;
+	if (DesignerSettings->bApplyRandomScale)
+	{
+		RandomScale.X = DesignerSettings->RandomScaleX.GetCurrentRandomValue();
+		RandomScale.Y = DesignerSettings->RandomScaleY.GetCurrentRandomValue();
+		RandomScale.Z = DesignerSettings->RandomScaleZ.GetCurrentRandomValue();
+
+		// If the object also scales towards the mouse we use the randoms scale as a ratio
+		if (DesignerSettings->bScaleBoundsTowardsCursor)
+		{
+			RandomScale = RandomScale / FMath::Max(RandomScale.X, FMath::Max(RandomScale.Y, RandomScale.Z));
+		}
+	}
+
+	FVector NewScale = RandomScale;
+	if (DesignerSettings->bScaleBoundsTowardsCursor)
+	{
+		NewScale = FVector(MouseDistance / FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y)) * RandomScale;
+	}
 
 	if (NewScale.ContainsNaN())
 	{
@@ -440,17 +469,17 @@ void FDesignerEdMode::UpdateDesignerActorTransform()
 		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultDesignerActorExtent.ToString());
 	}
 
-	// Make sure the scale won't be to close to 0.
-	NewScale.X = FMath::Max(NewScale.X, 0.0001F);
-	NewScale.Y = FMath::Max(NewScale.Y, 0.0001F);
-	NewScale.Z = FMath::Max(NewScale.Z, 0.0001F);
+	// Make sure the scale won't be too close to 0.
+	//NewScale.X = FMath::IsNearlyZero(NewScale.X) ? 0.00001F : NewScale.X;
+	//NewScale.Y = FMath::IsNearlyZero(NewScale.X) ? 0.00001F : NewScale.Y;
+	//NewScale.Z = FMath::IsNearlyZero(NewScale.X) ? 0.00001F : NewScale.Z;
 
 	NewDesignerActorTransform.SetScale3D(NewScale);
 	
 	NewDesignerActorTransform.SetRotation(GetDesignerActorRotation().Quaternion());
-	SpawnedDesignerActor->SetActorTransform(NewDesignerActorTransform);
-	SpawnedDesignerActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
-	SpawnedDesignerActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
+	ControlledActor->SetActorTransform(NewDesignerActorTransform);
+	ControlledActor->AddActorWorldOffset(DesignerSettings->SpawnLocationOffsetWorld);
+	ControlledActor->AddActorLocalOffset(DesignerSettings->SpawnLocationOffsetRelative);
 }
 
 void FDesignerEdMode::RefreshRandomRotationOffset()
