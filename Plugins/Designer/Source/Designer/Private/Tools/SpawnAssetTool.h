@@ -25,19 +25,57 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EditorModeTools.h"
+#include "Tools/DesignerTool.h"
+#include "UObject/GCObject.h"
+
+class AActor;
+class UDesignerSettings;
 
 /**
  * Tool for spawning assets from the content browser.
  */
-class FSpawnAssetTool : FModeTool
+class FSpawnAssetTool : public FDesignerTool
 {
+private:
+	/** The static mesh of the Spawn visualizer component */
+	UStaticMeshComponent* SpawnVisualizerComponent;
+
+	/** The material instance dynamic of the Spawn visualizer component */
+	UMaterialInstanceDynamic* SpawnVisualizerMID;
+
+	/** The plane we trace against when transforming the placed actor */
+	FPlane SpawnTracePlane;
+
+	/** The world transform stored on mouse click down */
+	FTransform CursorInputDownWorldTransform;
+
+	/** When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane */
+	FVector CursorPlaneWorldLocation;
+
+	/** The settings available to the user */
+	UDesignerSettings* DesignerSettings;
+
+	/** The actor currently controlled by the designer editor mode */
+	AActor* ControlledActor;
+
+	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
+	FVector DefaultDesignerActorExtent;
+
 public:
-	FSpawnAssetTool();
+	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
+
 	~FSpawnAssetTool();
+
+	virtual void AddReferencedObjects(FReferenceCollector& Collector);
 
 	/** Returns the name that gets reported to the editor. */
 	virtual FString GetName() const;
+
+	/** Called by the designer ed mode when switching to this tool */
+	virtual void EnterTool();
+
+	/** Called by the designer ed mode when switching to another tool from this tool */
+	virtual void ExitTool();
 
 	// User input
 
@@ -103,4 +141,38 @@ public:
 	//@}
 
 	virtual bool FrustumSelect(const FConvexVolume& InFrustum, bool InSelect = true);
+
+	/** The settings available to the user */
+	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }
+
+	/** The actor currently controlled by the designer editor mode */
+	FORCEINLINE AActor* GetControlledActor() const { return ControlledActor; }
+
+private:
+	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
+	bool UpdateSpawnVisualizerMaterialParameters();
+
+	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful */
+	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
+	
+	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
+	void RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
+
+	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
+	void UpdateDesignerActorTransform();
+
+	/** Generate new random rotation offset */
+	void RegenerateRandomRotationOffset();
+
+	/** Get the random rotation applied to the designer actor */
+	FRotator GetRandomRotationOffset() const;
+
+	/** Generate new random scale */
+	void RegenerateRandomScale();
+
+	/** The random scale applied to the designer actor */
+	FVector GetRandomScale() const;
+
+	/** Get the designer actor rotation with all settings applied to it */
+	FRotator GetDesignerActorRotation();
 };

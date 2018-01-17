@@ -27,13 +27,10 @@
 #include "CoreMinimal.h"
 #include "EdMode.h"
 
-#include "Math/Axis.h"
+#include "Tools/SpawnAssetTool.h"
 
 class UDesignerSettings;
-class AActor;
-class UStaticMeshComponent;
-class UMaterialInstanceDynamic;
-struct FActorPositionTraceResult;
+class FSpawnAssetTool;
 
 class FDesignerEdMode : public FEdMode
 {
@@ -41,32 +38,8 @@ public:
 	const static FEditorModeID EM_DesignerEdModeId;
 
 private:
-	/** The static mesh of the Spawn visualizer component */
-	UStaticMeshComponent* SpawnVisualizerComponent;
-
-	/** The material instance dynamic of the Spawn visualizer component */
-	UMaterialInstanceDynamic* SpawnVisualizerMID;
-
-	/** The plane we trace against when transforming the placed actor */
-	FPlane SpawnTracePlane;
-
-	/** The world transform stored on mouse click down */
-	FTransform CursorInputDownWorldTransform;
-
-	/** When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane */
-	FVector CursorPlaneWorldLocation;
-
-	/** The settings available to the user */
 	UDesignerSettings* DesignerSettings;
-
-	/** The actor currently controlled by the designer editor mode */
-	AActor* ControlledActor;
-
-	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
-	FVector DefaultDesignerActorExtent;
-
-	/** Can the user currently spawn an actor */
-	bool bCanSpawnActor;
+	FSpawnAssetTool* SpawnAssetTool;
 
 public:
 	FDesignerEdMode();
@@ -75,9 +48,6 @@ public:
 	/** The settings available to the user */
 	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }
 
-	/** The actor currently controlled by the designer editor mode */
-	FORCEINLINE AActor* GetControlledActor() const { return ControlledActor; }
-
 	/** FGCObject interface */
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) override;
 
@@ -85,58 +55,16 @@ public:
 
 	virtual void Enter() override;
 	virtual void Exit() override;
-
-	/** Draws translucent polygons on brushes and volumes */
-	virtual void Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI);
 		
 	bool LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport);
 	bool InputKey(FEditorViewportClient * ViewportClient, FViewport * Viewport, FKey Key, EInputEvent Event);
-	
-	/**
-	 * Called when the mouse is moved while a window input capture is in effect
-	 *
-	 * @param	InViewportClient	Level editor viewport client that captured the mouse input
-	 * @param	InViewport			Viewport that captured the mouse input
-	 * @param	InMouseX			New mouse cursor X coordinate
-	 * @param	InMouseY			New mouse cursor Y coordinate
-	 *
-	 * @return	true if input was handled
-	 */
-	virtual bool CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 MouseX, int32 MouseY);
 
 	/** If the Edmode is handling its own mouse deltas, it can disable the MouseDeltaTacker */
 	virtual bool DisallowMouseDeltaTracking() const;
-
-	bool UsesTransformWidget() const;
 	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;
 
-	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
-	bool UpdateSpawnVisualizerMaterialParameters();
-
-	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful */
-	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
-
-	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
-	bool RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
-
-	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
-	void UpdateDesignerActorTransform();
-
-private:
-	/** Generate new random rotation offset */
-	void RegenerateRandomRotationOffset();
-
-	/** Get the random rotation applied to the designer actor */
-	FRotator GetRandomRotationOffset() const;
-
-	/** Generate new random scale */
-	void RegenerateRandomScale();
-
-	/** The random scale applied to the designer actor */
-	FVector GetRandomScale() const;
-
-	/** Get the designer actor rotation with all settings applied to it */
-	FRotator GetDesignerActorRotation();
+	/** Set the current tool to the new designer tool while also calling ExitTool on the previous DesignerTool and EnterTool on the NewDesignerTool */
+	void SwitchTool(FDesignerTool* NewDesignerTool);
 };
