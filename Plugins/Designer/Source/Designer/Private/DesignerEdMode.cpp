@@ -52,6 +52,7 @@ void FDesignerEdMode::AddReferencedObjects(FReferenceCollector& Collector)
 {
 	// Call parent implementation
 	FEdMode::AddReferencedObjects(Collector);
+	Collector.AddReferencedObject(DesignerSettings);
 	
 	//Collector.AddReferencedObject(SpawnAssetTool);
 }
@@ -64,12 +65,26 @@ TSharedPtr<class FModeToolkit> FDesignerEdMode::GetToolkit()
 void FDesignerEdMode::Enter()
 {
 	FEdMode::Enter();
+
+	if (!Toolkit.IsValid() && UsesToolkits())
+	{
+		Toolkit = MakeShareable(new FDesignerEdModeToolkit);
+		Toolkit->Init(Owner->GetToolkitHost());
+	}
+
 	SwitchTool(nullptr);
 }
 
 void FDesignerEdMode::Exit()
 {
 	SwitchTool(nullptr);
+
+	if (Toolkit.IsValid())
+	{
+		FToolkitManager::Get().CloseToolkit(Toolkit.ToSharedRef());
+		Toolkit.Reset();
+	}
+
 	// Call base Exit method to ensure proper cleanup
 	FEdMode::Exit();
 }
