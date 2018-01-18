@@ -115,7 +115,9 @@ bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		}
 	}
 
-	return bHandled || FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
+	bool bHandledInSuper = FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
+
+	return bHandled || bHandledInSuper;
 }
 
 bool FDesignerEdMode::DisallowMouseDeltaTracking() const
