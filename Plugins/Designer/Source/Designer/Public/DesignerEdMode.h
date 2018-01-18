@@ -61,6 +61,9 @@ public:
 
 	/** If the Edmode is handling its own mouse deltas, it can disable the MouseDeltaTacker */
 	virtual bool DisallowMouseDeltaTracking() const;
+
+	/** Check to see if an actor can be selected in this mode - no side effects */
+	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const;
 	
 	/** True if this mode uses a toolkit mode (eventually they all should) */
 	bool UsesToolkits() const override;

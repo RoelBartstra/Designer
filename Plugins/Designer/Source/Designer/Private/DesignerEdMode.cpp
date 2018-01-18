@@ -123,6 +123,17 @@ bool FDesignerEdMode::DisallowMouseDeltaTracking() const
 	return CurrentTool != nullptr;
 }
 
+bool FDesignerEdMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
+{
+	bool bResult = true;
+	FDesignerTool* CurrentDesignerTool = static_cast<FDesignerTool*>(CurrentTool);
+	if (CurrentDesignerTool)
+	{
+		bResult = CurrentDesignerTool->IsSelectionAllowed(InActor, bInSelection);
+	}
+	return bResult;
+}
+
 bool FDesignerEdMode::UsesToolkits() const
 {
 	return true;

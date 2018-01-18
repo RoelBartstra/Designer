@@ -99,6 +99,16 @@ void FSpawnAssetTool::ExitTool()
 	}
 }
 
+bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
+{
+	if (ControlledActor)
+	{
+		return InActor == ControlledActor && !FMath::IsNearlyZero(ControlledActor->GetActorScale3D().Size());
+	}
+
+	return false;
+}
+
 bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
 	return false;
@@ -249,10 +259,8 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 					CursorPlaneWorldLocation = CursorInputDownWorldTransform.GetLocation();
 					SpawnTracePlane = FPlane();
 
-					FTransform SpawnVisualizerTransform = FTransform();
-					SpawnVisualizerTransform.SetLocation(CursorInputDownWorldTransform.GetLocation());
-					SpawnVisualizerTransform.SetRotation(FRotationMatrix::MakeFromZX(CursorInputDownWorldTransform.GetRotation().GetUpVector(), FVector::ForwardVector).ToQuat());
-					SpawnVisualizerTransform.SetScale3D(FVector::OneVector * 10000);
+					FTransform SpawnVisualizerTransform = CursorInputDownWorldTransform;
+					SpawnVisualizerTransform.SetScale3D(FVector(10000));
 					SpawnVisualizerComponent->SetRelativeTransform(SpawnVisualizerTransform);
 
 					if (!SpawnVisualizerComponent->IsRegistered())
@@ -278,6 +286,11 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			if (ControlledActor != nullptr && FMath::IsNearlyZero(ControlledActor->GetActorScale3D().Size()))
 			{
 				ControlledActor->Destroy(false, false);
+				GEditor->RedrawLevelEditingViewports();
+			}
+			else
+			{
+				GEditor->SelectActor(ControlledActor, true, true, true, true);
 			}
 
 			ControlledActor = nullptr;
@@ -288,10 +301,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 				SpawnVisualizerComponent->UnregisterComponent();
 			}
 
-			// Makes sure we can click the transform widget after the user has spawned the actor.
-			GEditor->RedrawLevelEditingViewports();
-
-			bHandled = false;
+			bHandled = true;
 		}
 	}
 
@@ -370,6 +380,7 @@ bool FSpawnAssetTool::UpdateSpawnVisualizerMaterialParameters()
 		FVector Extent = DefaultDesignerActorExtent * ControlledActor->GetActorScale3D();
 		EAxisType PositiveAxis = DesignerSettings->GetPositiveAxisToAlignWithCursor();
 		float ActorRadius = PositiveAxis == EAxisType::Right ? Extent.Y : PositiveAxis == EAxisType::Up ? Extent.Z : Extent.X;
+		ActorRadius = FMath::Abs(ActorRadius);
 
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorPlaneWorldLocation"), FLinearColor(CursorPlaneWorldLocation.X, CursorPlaneWorldLocation.Y, CursorPlaneWorldLocation.Z, ActorRadius));
 
