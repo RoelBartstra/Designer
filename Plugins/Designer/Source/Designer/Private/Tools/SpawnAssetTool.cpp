@@ -139,15 +139,17 @@ bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* InViewportClient,
 	bool bHandled = false;
 
 	if (ControlledActor == nullptr)
+	{
 		return bHandled;
+	}
+	else
+	{
+		RecalculateMouseSpawnTracePlaneWorldLocation(InViewportClient, InViewport);
+		UpdateDesignerActorTransform();
+		UpdateSpawnVisualizerMaterialParameters();
 
-	RecalculateMouseSpawnTracePlaneWorldLocation(InViewportClient, InViewport);
-
-	UpdateDesignerActorTransform();
-
-	UpdateSpawnVisualizerMaterialParameters();
-
-	bHandled = true;
+		bHandled = true;
+	}
 
 	return bHandled;
 }
@@ -166,7 +168,8 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 {
 	bool bHandled = false;
 
-	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
+	// Randomize the object again if right mouse button is pressed in this mode.
+	if (Key == EKeys::RightMouseButton)
 	{
 		if (Event == IE_Pressed && ControlledActor != nullptr)
 		{
@@ -174,15 +177,17 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			RegenerateRandomScale();
 			UpdateDesignerActorTransform();
 			UpdateSpawnVisualizerMaterialParameters();
-
-			bHandled = true;
 		}
+
+		bHandled = true;
 	}
 
 	if (Key == EKeys::LeftMouseButton)
 	{
 		if (Event == IE_Pressed)
 		{
+			//GEditor->SelectNone(true, true, true);
+
 			TArray<FAssetData> ContentBrowserSelections;
 			GEditor->GetContentBrowserSelections(ContentBrowserSelections);
 
@@ -269,11 +274,8 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 					}
 
 					RegenerateRandomRotationOffset();
-
 					RegenerateRandomScale();
-
 					UpdateDesignerActorTransform();
-
 					UpdateSpawnVisualizerMaterialParameters();
 
 					bHandled = true;

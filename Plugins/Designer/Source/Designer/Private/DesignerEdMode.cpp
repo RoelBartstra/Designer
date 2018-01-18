@@ -123,6 +123,11 @@ bool FDesignerEdMode::DisallowMouseDeltaTracking() const
 	return CurrentTool != nullptr;
 }
 
+bool FDesignerEdMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
+{
+	return false;
+}
+
 bool FDesignerEdMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
 	bool bResult = true;
