@@ -49,16 +49,16 @@ private:
 	FPlane SpawnTracePlane;
 
 	/** The world transform stored on mouse click down */
-	FTransform CursorInputDownWorldTransform;
+	FTransform SpawnWorldTransform;
 
 	/** When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane */
-	FVector CursorPlaneWorldLocation;
+	FVector CursorPlaneIntersectionWorldLocation;
 
 	/** The settings available to the user */
 	UDesignerSettings* DesignerSettings;
 
 	/** The actor currently controlled by the designer editor mode */
-	AActor* ControlledActor;
+	AActor* SpawnedActor;
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	FVector DefaultDesignerActorExtent;
@@ -151,17 +151,17 @@ public:
 	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }
 
 	/** The actor currently controlled by the designer editor mode */
-	FORCEINLINE AActor* GetControlledActor() const { return ControlledActor; }
+	FORCEINLINE AActor* GetControlledActor() const { return SpawnedActor; }
 
 private:
 	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
 	bool UpdateSpawnVisualizerMaterialParameters();
 
 	/** Calculate the world transform for the mouse and store it in MouseDownWorldTransform. Returns true if it was successful */
-	bool RecalculateMouseDownWorldTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
+	bool RecalculateSpawnTransform(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 	
 	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
-	void RecalculateMouseSpawnTracePlaneWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
+	void RecalculateMousePlaneIntersectionWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
 	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
 	void UpdateDesignerActorTransform();
