@@ -102,9 +102,11 @@ void FSpawnAssetTool::ExitTool()
 bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
 	if (ControlledActor)
-	{
 		return InActor == ControlledActor && !FMath::IsNearlyZero(ControlledActor->GetActorScale3D().Size());
-	}
+
+	// Make sure select none works when spawning actor.
+	if (InActor != ControlledActor && !bInSelection)
+		return true;
 
 	return false;
 }
@@ -186,7 +188,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	{
 		if (Event == IE_Pressed)
 		{
-			//GEditor->SelectNone(true, true, true);
+			GEditor->SelectNone(true, true, false);
 
 			TArray<FAssetData> ContentBrowserSelections;
 			GEditor->GetContentBrowserSelections(ContentBrowserSelections);
