@@ -7,7 +7,7 @@
 1. [Introduction](#introduction)
 2. [Download](#download)
 3. [Install](#install)
-4. [Getting Started](#gettingstarted)
+4. [Getting Started](#getting-started)
 5. [Support](#support)
 6. [FAQ](#faq)
 
