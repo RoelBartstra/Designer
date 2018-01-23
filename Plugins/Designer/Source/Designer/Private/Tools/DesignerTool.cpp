@@ -22,31 +22,6 @@
  * SOFTWARE.
  */
 
-#pragma once
+#include "DesignerTool.h"
 
-#include "CoreMinimal.h"
-#include "Toolkits/BaseToolkit.h"
 
-class SDesignerSettings;
-
-class FDesignerEdModeToolkit : public FModeToolkit
-{
-public:
-
-	FDesignerEdModeToolkit();
-	
-	TSharedPtr<SDesignerSettings> DesignerSettingsWidgets;
-
-	/** FModeToolkit interface */
-	virtual void Init(const TSharedPtr<IToolkitHost>& InitToolkitHost) override;
-
-	/** IToolkit interface */
-	virtual FName GetToolkitFName() const override;
-	virtual FText GetBaseToolkitName() const override;
-	virtual class FEdMode* GetEditorMode() const override;
-	virtual TSharedPtr<class SWidget> GetInlineContent() const override;
-
-//private:
-
-	//TSharedPtr<SWidget> ToolkitWidget;
-};

@@ -25,28 +25,30 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Toolkits/BaseToolkit.h"
+#include "EditorModeTools.h"
+#include "UObject/GCObject.h"
 
-class SDesignerSettings;
-
-class FDesignerEdModeToolkit : public FModeToolkit
+/**
+ * Tool for spawning assets from the content browser.
+ */
+class FDesignerTool : public FModeTool, public FGCObject
 {
 public:
+	FDesignerTool() {}
 
-	FDesignerEdModeToolkit();
-	
-	TSharedPtr<SDesignerSettings> DesignerSettingsWidgets;
+	~FDesignerTool() {}
 
-	/** FModeToolkit interface */
-	virtual void Init(const TSharedPtr<IToolkitHost>& InitToolkitHost) override;
+	virtual void AddReferencedObjects(FReferenceCollector& Collector) {}
 
-	/** IToolkit interface */
-	virtual FName GetToolkitFName() const override;
-	virtual FText GetBaseToolkitName() const override;
-	virtual class FEdMode* GetEditorMode() const override;
-	virtual TSharedPtr<class SWidget> GetInlineContent() const override;
+	/** Returns the name that gets reported to the editor */
+	virtual FString GetName() const { return TEXT("DesignerTool"); }
 
-//private:
+	/** Called by the designer ed mode when switching to this tool */
+	virtual void EnterTool() {}
 
-	//TSharedPtr<SWidget> ToolkitWidget;
+	/** Called by the designer ed mode when switching to another tool from this tool */
+	virtual void ExitTool() {}
+
+	/** Check to see if an actor can be selected in this mode - no side effects */
+	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const { return true; }
 };

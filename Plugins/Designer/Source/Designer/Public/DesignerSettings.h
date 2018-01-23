@@ -1,22 +1,26 @@
-//  Copyright 2018 Roel Bartstra.
-
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files(the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions :
-
-//  The above copyright notice and this permission notice shall be included in all
-//  copies or substantial portions of the Software.
-
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-//  SOFTWARE.
+/**
+ * MIT License
+ * 
+ * Copyright(c) 2018 RoelBartstra
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files(the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and / or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions :
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
 #pragma once
 
@@ -25,19 +29,6 @@
 #include "DesignerSettings.generated.h"
 
 class FDesignerEdMode;
-
-//UENUM()
-//enum class EPlacementType : uint8
-//{
-//	/** Place the object fixed */
-//	Fixed = 0 UMETA(DisplayName = "Fixed"),
-//
-//	/** Place the object using the mouse */
-//	Cursor = 1 UMETA(DisplayName = "Mouse"),
-//
-//	/** Place the object randomly within the given min max parameters */
-//	Random = 2 UMETA(DisplayName = "Random")
-//};
 
 UENUM()
 enum class EAxisType : uint8
@@ -65,6 +56,61 @@ enum class EAxisType : uint8
 };
 
 /**
+ * A random float within a min max range
+ * Option for randomly negating the value
+ */
+USTRUCT(BlueprintType)
+struct FRandomMinMaxFloat
+{
+	GENERATED_BODY()
+
+	/** The minimal value */
+	UPROPERTY(EditAnywhere)
+	float Min;
+
+	/** The maximum value */
+	UPROPERTY(EditAnywhere)
+	float Max;
+
+	/**
+	 * Is this value allowed to randomly flip the sign of the generated value?
+	 * i.e. if Min = 30 and Max = 30 the outcome can be either 30 or -30 when this is set to true
+	 */
+	UPROPERTY(EditAnywhere)
+	bool bRandomlyNegateValue;
+
+private:
+	/** The randomly generated value */
+	UPROPERTY()
+	float RandomValue;
+
+public:
+	FRandomMinMaxFloat()
+	{
+		this->Min = 0.F;
+		this->Max = 1.F;
+		this->bRandomlyNegateValue = false;
+
+		RegenerateRandomValue();
+	}
+
+	FRandomMinMaxFloat(float Min, float Max, bool bRandomlyNegateValue = false)
+	{
+		this->Min = Min;
+		this->Max = Max;
+		this->bRandomlyNegateValue = bRandomlyNegateValue;
+
+		RegenerateRandomValue();
+	}
+
+	/** Get the random value currently stored in this struct */
+	FORCEINLINE float GetCurrentRandomValue() { return RandomValue; }
+
+	/** Regenerates the random value and returns it. The value can also be retrieved later as well using GetCurrentRandomValue */
+	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomlyNegateValue ? -1.F : 1.F); }
+};
+
+/**
  * The settings shown the in editor mode details panel
  */
 UCLASS()
@@ -75,11 +121,11 @@ class DESIGNER_API UDesignerSettings : public UObject
 public:
 	/** The spawn location offset in relative space */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	FVector SpawnLocationOffsetRelative;
+	FVector RelativeLocationOffset;
 
 	/** The spawn rotation offset in world space */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	FVector SpawnLocationOffsetWorld;
+	FVector WorldLocationOffset;
 
 	/** Actor axis vector to align with the hit surface direction */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
@@ -100,30 +146,48 @@ public:
 	/** Is the rotation z axis snapped to the grid set in the viewport grid settings */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bSnapToGridRotationZ;
+	
+	/** Randomly rotates the mesh */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bApplyRandomRotation;
+	
+	/** Random rotation offset applied to the x axis rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FRandomMinMaxFloat RandomRotationX;
 
-	///** Choose the type of placement applied to the x axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeX;
+	/** Random rotation offset applied to the y axis rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FRandomMinMaxFloat RandomRotationY;
 
-	///** If the rotation type x is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxX;
+	/** Random rotation offset applied to z axis the rotation matrix on spawn */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	FRandomMinMaxFloat RandomRotationZ;
 
-	///** Choose the type of placement applied to the y axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeY;
+	/** Scale the bounds of the mesh towards the cursor location */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bScaleBoundsTowardsCursor;
+	
+	/** Randomly scale the mesh */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	bool bApplyRandomScale;
 
-	///** If the rotation type y is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxY;
+	/** Random scale for x axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleX;
 
-	///** Choose the type of placement applied to the Z axis of the rotation */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//EPlacementType RotationTypeZ;
+	/** Random scale for y axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleY;
 
-	///** If the rotation type z is defined as random these values will be used to determine the minimum and maximum value */
-	//UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	//FVector2D RandomRotationMinMaxZ;
+	/** Random scale for z axis */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	FRandomMinMaxFloat RandomScaleZ;
+
+	/**
+	 * Always returns the positive axis of the current selected AxisToAlignWithCursor
+	  * i.e. Backward becomes Forward while Up stays Up.
+	*/
+	FORCEINLINE EAxisType GetPositiveAxisToAlignWithCursor() { return (EAxisType)(~1 & (int)AxisToAlignWithCursor); }
 
 private:
 	FDesignerEdMode* ParentEdMode;
