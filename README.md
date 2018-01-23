@@ -1,5 +1,5 @@
 #      Designer Manual
-###### Manual Version 1.1     |     Designer Plugin Version 0.1.1     |     Unreal Engine Version 4.18
+###### Manual Version 1.2     |     Designer Plugin Version 0.2.0     |     Unreal Engine Version 4.18
 
 
 
@@ -7,6 +7,9 @@
 1. [Introduction](#introduction)
 2. [Download](#download)
 3. [Install](#install)
+4. [Getting Started](#gettingstarted)
+5. [Support](#support)
+6. [FAQ](#faq)
 
 
 
@@ -62,7 +65,7 @@ While in the designer editor mode:
 
 
 ## Support
-Any questions can be posted on the [unreal engine forum](https://forums.unrealengine.com/community/community-content-tools-and-tutorials/1410865-free-designer-editor-mode-plugin).
+Any questions can be posted on the [unreal engine forum](https://forums.unrealengine.com/community/community-content-tools-and-tutorials/1410865).
 
 
 ## FAQ
