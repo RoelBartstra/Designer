@@ -209,7 +209,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 			if (SelectedAssets.Num() > 0)
 			{
-				TargetAssetData = SelectedAssets.Top();
+				TargetAssetData = SelectedAssets[FMath::RandRange(0, SelectedAssets.Num() - 1)];// SelectedAssets.Top();
 			}
 
 			if (TargetAssetData.GetClass() == UClass::StaticClass())
@@ -417,7 +417,6 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 
 	if (ActorPositionTraceResult.HitActor == nullptr)
 	{
-		UE_LOG(LogDesigner, Warning, TEXT("Mouse click down did not hit anything."));
 		return false;
 	}
 
