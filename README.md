@@ -1,5 +1,5 @@
 #      Designer Manual
-###### Manual Version 1.2     |     Designer Plugin Version 0.2.0     |     Unreal Engine Version 4.18
+###### Manual Version 1.3 | Designer Plugin Version 0.3.0 | Unreal Engine Version 4.19
 
 
 
@@ -57,7 +57,7 @@ The editor mode is activated by clicking the Designer icon ![alt text][icon] in 
 
 ### Spawning Objects
 While in the designer editor mode:
-1. Click on a placable asset in the content browser.
+1. Click on a placable asset in the content browser. A random asset will be picked for spawning when multiple assets are selected in the content browser.
 2. Hold down the ctrl key.
 3. Click and hold the left mouse button.
 4. Drag the mouse into a direction to rotate and scale the object.
