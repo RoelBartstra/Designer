@@ -145,7 +145,7 @@ public:
 	virtual bool BoxSelect(FBox& InBox, bool InSelect = true);
 	//@}
 
-	virtual bool FrustumSelect(const FConvexVolume& InFrustum, bool InSelect = true);
+	virtual bool FrustumSelect(const FConvexVolume& InFrustum, FEditorViewportClient* InViewportClient, bool InSelect = true);
 
 	/** The settings available to the user */
 	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }

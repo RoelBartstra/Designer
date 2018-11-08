@@ -24,7 +24,7 @@
 
 #pragma once
 
-#include "ISlateStyle.h"
+#include "Styling/ISlateStyle.h"
 
 class FDesignerSlateStyle
 {

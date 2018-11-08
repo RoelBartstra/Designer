@@ -357,12 +357,12 @@ void FSpawnAssetTool::SelectNone()
 
 }
 
-bool FSpawnAssetTool::BoxSelect(FBox& InBox, bool InSelect /*= true*/)
+bool FSpawnAssetTool::BoxSelect(FBox& InBox, bool InSelect)
 {
 	return false;
 }
 
-bool FSpawnAssetTool::FrustumSelect(const FConvexVolume& InFrustum, bool InSelect /*= true*/)
+bool FSpawnAssetTool::FrustumSelect(const FConvexVolume& InFrustum, FEditorViewportClient* InViewportClient, bool InSelect)
 {
 	return false;
 }
