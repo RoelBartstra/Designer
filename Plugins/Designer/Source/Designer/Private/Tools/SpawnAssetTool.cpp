@@ -316,7 +316,7 @@ void FSpawnAssetTool::Render(const FSceneView* View, FViewport* Viewport, FPrimi
 {	
 	if (SpawnedActor == nullptr)
 	{
-		DrawSphere(PDI, SpawnWorldTransform.GetLocation(), SpawnWorldTransform.GetRotation().Rotator(), FVector(5.F), 32, 32, GEngine->DebugEditorMaterial->GetRenderProxy(false), SDPG_Foreground, false);
+		DrawSphere(PDI, SpawnWorldTransform.GetLocation(), SpawnWorldTransform.GetRotation().Rotator(), FVector(5.F), 32, 32, GEngine->DebugEditorMaterial->GetRenderProxy(), SDPG_Foreground, false);
 	}
 }
 
@@ -411,9 +411,7 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 		TraceStartLocation += -WORLD_MAX * TraceDirection;
 	}
 
-	const TArray<AActor*>* IgnoreActors = new TArray<AActor*>();
-
-	FActorPositionTraceResult ActorPositionTraceResult = FActorPositioning::TraceWorldForPositionWithDefault(MouseViewportRay, *SceneView, IgnoreActors);
+	FActorPositionTraceResult ActorPositionTraceResult = FActorPositioning::TraceWorldForPositionWithDefault(MouseViewportRay, *SceneView);
 
 	if (ActorPositionTraceResult.HitActor == nullptr)
 	{
