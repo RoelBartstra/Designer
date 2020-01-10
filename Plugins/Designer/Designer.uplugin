@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.3.1",
+	"VersionName": "0.3.2",
 	"FriendlyName": "Designer",
 	"Description": "Easy to use level design tools.",
 	"Category": "Editor Modes",
@@ -12,6 +12,7 @@
 	"SupportURL": "www.unrealengineer.com/designer",
 	"CanContainContent": true,
 	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
