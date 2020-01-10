@@ -65,18 +65,18 @@ struct FRandomMinMaxFloat
 	GENERATED_BODY()
 
 	/** The minimal value */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Category = "Random", EditAnywhere)
 	float Min;
 
 	/** The maximum value */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Category = "Random", EditAnywhere)
 	float Max;
 
 	/**
 	 * Is this value allowed to randomly flip the sign of the generated value?
 	 * i.e. if Min = 30 and Max = 30 the outcome can be either 30 or -30 when this is set to true
 	 */
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(Category = "Random", EditAnywhere)
 	bool bRandomlyNegateValue;
 
 private:

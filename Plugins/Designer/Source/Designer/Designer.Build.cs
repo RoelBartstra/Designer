@@ -32,7 +32,7 @@ public class Designer : ModuleRules
 		
 		PublicIncludePaths.AddRange(
 			new string[] {
-				"Designer/Public"
+				// "Designer/Public"
 				// ... add public include paths required here ...
 			}
 			);
