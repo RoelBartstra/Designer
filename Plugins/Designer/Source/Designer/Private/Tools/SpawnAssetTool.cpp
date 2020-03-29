@@ -84,8 +84,8 @@ FString FSpawnAssetTool::GetName() const
 
 void FSpawnAssetTool::EnterTool()
 {
+	IsToolActive = false;
 	SpawnedActor = nullptr;
-
 	SpawnVisualizerComponent->SetVisibility(true);
 }
 
@@ -108,7 +108,7 @@ bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) con
 	if (InActor != SpawnedActor && !bInSelection)
 		return true;
 
-	return false;
+	return !IsToolActive;
 }
 
 bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
@@ -168,44 +168,42 @@ bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewp
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
-
 	bool bHandled = false;
 
-	if (!(Key == EKeys::LeftControl || Key == EKeys::RightControl))
+	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
 	{
 		if (Event == IE_Pressed)
 		{
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, tool activated"));
+			IsToolActive = true;
 			bHandled = true;
 		}
 		else if (Event == IE_Released)
 		{
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, tool deactivated"));
+			IsToolActive = false;
 			bHandled = true;
 		}
 	}
 
 	// Randomize the object again if right mouse button is pressed in this mode.
-	if (Key == EKeys::RightMouseButton)
+	if (Key == EKeys::RightMouseButton && Event == IE_Pressed && SpawnedActor != nullptr && IsToolActive)
 	{
-		if (Event == IE_Pressed && SpawnedActor != nullptr)
-		{
-			RegenerateRandomRotationOffset();
-			RegenerateRandomScale();
-			UpdateDesignerActorTransform();
-			UpdateSpawnVisualizerMaterialParameters();
-		}
+		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, regenerate random for spawned actor"));
+
+		RegenerateRandomRotationOffset();
+		RegenerateRandomScale();
+		UpdateDesignerActorTransform();
+		UpdateSpawnVisualizerMaterialParameters();
 
 		bHandled = true;
 	}
 
-	if (Key == EKeys::LeftMouseButton && Event == IE_Pressed)
+	if (Key == EKeys::LeftMouseButton && Event == IE_Pressed && IsToolActive)
 	{
+		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, spawn selected asset"));
+
 		GEditor->SelectNone(true, true, false);
-
-		//TArray<FAssetData> ContentBrowserSelections;
-		//GEditor->GetContentBrowserSelections(ContentBrowserSelections);
-
-		UClass* SelectedClass = GEditor->GetSelectedObjects()->GetTop<UClass>();
 
 		bool bPlaceable = true;
 		TArray<FAssetData> SelectedAssets;
@@ -295,30 +293,34 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 				bHandled = true;
 			}
 		}
+	}
 
-		/** Left mouse button released */
-		if ((Key == EKeys::LeftMouseButton && Event == IE_Released))
+	/** Left mouse button released while tool is active */
+	if (Key == EKeys::LeftMouseButton && Event == IE_Released && IsToolActive)
+	{
+		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, free spawned actor"));
+
+		if (SpawnedActor != nullptr && FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size()))
 		{
-			if (SpawnedActor != nullptr && FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size()))
-			{
-				SpawnedActor->Destroy(false, false);
-				GEditor->RedrawLevelEditingViewports();
-			}
-			else
-			{
-				GEditor->SelectActor(SpawnedActor, true, true, true, true);
-			}
-
-			SpawnedActor = nullptr;
-			DefaultDesignerActorExtent = FVector::ZeroVector;
-
-			if (SpawnVisualizerComponent->IsRegistered())
-			{
-				SpawnVisualizerComponent->UnregisterComponent();
-			}
-
-			bHandled = true;
+			SpawnedActor->Destroy(false, false);
+			GEditor->RedrawLevelEditingViewports();
 		}
+		else
+		{
+			GEditor->SelectActor(SpawnedActor, true, true, true, true);
+		}
+
+		SpawnedActor = nullptr;
+		DefaultDesignerActorExtent = FVector::ZeroVector;
+
+		if (SpawnVisualizerComponent->IsRegistered())
+		{
+			SpawnVisualizerComponent->UnregisterComponent();
+		}
+
+		IsToolActive = false;
+
+		bHandled = true;
 	}
 
 	return bHandled;
