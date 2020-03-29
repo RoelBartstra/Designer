@@ -57,7 +57,7 @@ public:
 	virtual void Exit() override;
 		
 	bool LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport);
-	bool InputKey(FEditorViewportClient * ViewportClient, FViewport * Viewport, FKey Key, EInputEvent Event);
+	//bool InputKey(FEditorViewportClient * ViewportClient, FViewport * Viewport, FKey Key, EInputEvent Event);
 
 	/** If the Edmode is handling its own mouse deltas, it can disable the MouseDeltaTacker */
 	virtual bool DisallowMouseDeltaTracking() const;

@@ -58,11 +58,14 @@ private:
 	UDesignerSettings* DesignerSettings;
 
 	/** The actor currently controlled by the designer editor mode */
+	AActor* SpawnedActorPreview;
+
+	/** The actor currently controlled by the designer editor mode */
 	AActor* SpawnedActor;
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	FVector DefaultDesignerActorExtent;
-
+	
 public:
 	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
 

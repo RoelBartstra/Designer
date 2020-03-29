@@ -168,7 +168,21 @@ bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewp
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
+
 	bool bHandled = false;
+
+	if (!(Key == EKeys::LeftControl || Key == EKeys::RightControl))
+	{
+		if (Event == IE_Pressed)
+		{
+			bHandled = true;
+		}
+		else if (Event == IE_Released)
+		{
+			bHandled = true;
+		}
+	}
 
 	// Randomize the object again if right mouse button is pressed in this mode.
 	if (Key == EKeys::RightMouseButton)
@@ -184,108 +198,106 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		bHandled = true;
 	}
 
-	if (Key == EKeys::LeftMouseButton)
+	if (Key == EKeys::LeftMouseButton && Event == IE_Pressed)
 	{
-		if (Event == IE_Pressed)
+		GEditor->SelectNone(true, true, false);
+
+		//TArray<FAssetData> ContentBrowserSelections;
+		//GEditor->GetContentBrowserSelections(ContentBrowserSelections);
+
+		UClass* SelectedClass = GEditor->GetSelectedObjects()->GetTop<UClass>();
+
+		bool bPlaceable = true;
+		TArray<FAssetData> SelectedAssets;
+		AssetSelectionUtils::GetSelectedAssets(SelectedAssets);
+		FAssetData TargetAssetData;
+
+		if (TargetAssetData.GetClass() == UClass::StaticClass())
 		{
-			GEditor->SelectNone(true, true, false);
+			UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
 
-			TArray<FAssetData> ContentBrowserSelections;
-			GEditor->GetContentBrowserSelections(ContentBrowserSelections);
+			bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
+		}
 
-			UClass* SelectedClass = GEditor->GetSelectedObjects()->GetTop<UClass>();
+		if (SelectedAssets.Num() > 0)
+		{
+			TargetAssetData = SelectedAssets[FMath::RandRange(0, SelectedAssets.Num() - 1)];
+		}
 
-			bool bPlaceable = true;
-			TArray<FAssetData> SelectedAssets;
-			AssetSelectionUtils::GetSelectedAssets(SelectedAssets);
-			FAssetData TargetAssetData;
+		if (TargetAssetData.GetClass() == UClass::StaticClass())
+		{
+			UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
 
-			if (TargetAssetData.GetClass() == UClass::StaticClass())
+			bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
+		}
+		else if (TargetAssetData.GetClass() == UBlueprint::StaticClass())
+		{
+			// For blueprints, attempt to determine placeability from its tag information
+
+			const FName NativeParentClassTag = TEXT("NativeParentClass");
+			const FName ClassFlagsTag = TEXT("ClassFlags");
+
+			FString TagValue;
+
+			if (TargetAssetData.GetTagValue(NativeParentClassTag, TagValue) && !TagValue.IsEmpty())
 			{
-				UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
+				// If the native parent class can't be placed, neither can the blueprint.
+				UObject* Outer = nullptr;
+				ResolveName(Outer, TagValue, false, false);
+				UClass* NativeParentClass = FindObject<UClass>(ANY_PACKAGE, *TagValue);
 
-				bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
+				bPlaceable = AssetSelectionUtils::IsClassPlaceable(NativeParentClass);
 			}
 
-			if (SelectedAssets.Num() > 0)
+			if (bPlaceable && TargetAssetData.GetTagValue(ClassFlagsTag, TagValue) && !TagValue.IsEmpty())
 			{
-				TargetAssetData = SelectedAssets[FMath::RandRange(0, SelectedAssets.Num() - 1)];// SelectedAssets.Top();
-			}
+				// Check to see if this class is placeable from its class flags
+				const int32 NotPlaceableFlags = CLASS_NotPlaceable | CLASS_Deprecated | CLASS_Abstract;
+				uint32 ClassFlags = FCString::Atoi(*TagValue);
 
-			if (TargetAssetData.GetClass() == UClass::StaticClass())
-			{
-				UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
-
-				bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
-			}
-			else if (TargetAssetData.GetClass() == UBlueprint::StaticClass())
-			{
-				// For blueprints, attempt to determine placeability from its tag information
-
-				const FName NativeParentClassTag = TEXT("NativeParentClass");
-				const FName ClassFlagsTag = TEXT("ClassFlags");
-
-				FString TagValue;
-
-				if (TargetAssetData.GetTagValue(NativeParentClassTag, TagValue) && !TagValue.IsEmpty())
-				{
-					// If the native parent class can't be placed, neither can the blueprint.
-					UObject* Outer = nullptr;
-					ResolveName(Outer, TagValue, false, false);
-					UClass* NativeParentClass = FindObject<UClass>(ANY_PACKAGE, *TagValue);
-
-					bPlaceable = AssetSelectionUtils::IsClassPlaceable(NativeParentClass);
-				}
-
-				if (bPlaceable && TargetAssetData.GetTagValue(ClassFlagsTag, TagValue) && !TagValue.IsEmpty())
-				{
-					// Check to see if this class is placeable from its class flags
-					const int32 NotPlaceableFlags = CLASS_NotPlaceable | CLASS_Deprecated | CLASS_Abstract;
-					uint32 ClassFlags = FCString::Atoi(*TagValue);
-
-					bPlaceable = (ClassFlags & NotPlaceableFlags) == CLASS_None;
-				}
-			}
-
-			UObject* TargetAsset = TargetAssetData.GetAsset();
-
-			if (bPlaceable && IsValid(TargetAsset))
-			{
-				UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAsset);
-				if (ActorFactory)
-				{
-					// Recalculate mouse down, if it fails, return.
-					if (!RecalculateSpawnTransform(ViewportClient, Viewport))
-						return bHandled;
-
-					SpawnedActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &SpawnWorldTransform);
-
-					DefaultDesignerActorExtent = SpawnedActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
-
-					// Properly reset data.
-					CursorPlaneIntersectionWorldLocation = SpawnWorldTransform.GetLocation();
-					SpawnTracePlane = FPlane();
-
-					FTransform SpawnVisualizerTransform = SpawnWorldTransform;
-					SpawnVisualizerTransform.SetScale3D(FVector(10000));
-					SpawnVisualizerComponent->SetRelativeTransform(SpawnVisualizerTransform);
-
-					if (!SpawnVisualizerComponent->IsRegistered())
-					{
-						SpawnVisualizerComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
-					}
-
-					RegenerateRandomRotationOffset();
-					RegenerateRandomScale();
-					UpdateDesignerActorTransform();
-					UpdateSpawnVisualizerMaterialParameters();
-
-					bHandled = true;
-				}
+				bPlaceable = (ClassFlags & NotPlaceableFlags) == CLASS_None;
 			}
 		}
+
+		UObject* TargetAsset = TargetAssetData.GetAsset();
+
+		if (bPlaceable && IsValid(TargetAsset))
+		{
+			UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAsset);
+			if (ActorFactory)
+			{
+				// Recalculate mouse down, if it fails, return.
+				if (!RecalculateSpawnTransform(ViewportClient, Viewport))
+					return bHandled;
+
+				SpawnedActor = GEditor->UseActorFactory(ActorFactory, TargetAssetData, &SpawnWorldTransform);
+
+				DefaultDesignerActorExtent = SpawnedActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
+
+				// Properly reset data.
+				CursorPlaneIntersectionWorldLocation = SpawnWorldTransform.GetLocation();
+				SpawnTracePlane = FPlane();
+
+				FTransform SpawnVisualizerTransform = SpawnWorldTransform;
+				SpawnVisualizerTransform.SetScale3D(FVector(10000));
+				SpawnVisualizerComponent->SetRelativeTransform(SpawnVisualizerTransform);
+
+				if (!SpawnVisualizerComponent->IsRegistered())
+				{
+					SpawnVisualizerComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
+				}
+
+				RegenerateRandomRotationOffset();
+				RegenerateRandomScale();
+				UpdateDesignerActorTransform();
+				UpdateSpawnVisualizerMaterialParameters();
+
+				bHandled = true;
+			}
+		}
+
 		/** Left mouse button released */
-		else if (Event == IE_Released)
+		if ((Key == EKeys::LeftMouseButton && Event == IE_Released))
 		{
 			if (SpawnedActor != nullptr && FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size()))
 			{
