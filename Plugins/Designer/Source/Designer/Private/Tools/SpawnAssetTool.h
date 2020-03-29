@@ -39,6 +39,12 @@ class UStaticMeshComponent;
 class FSpawnAssetTool : public FDesignerTool
 {
 private:
+	AActor* SpawnActorPreview;
+
+	UMaterialInstanceDynamic* SpawnActorPreviewMID;
+
+	UMaterialInstanceDynamic* SpawnActorPreviewPulsingMID;
+
 	/** The static mesh of the Spawn visualizer component */
 	UStaticMeshComponent* SpawnVisualizerComponent;
 
@@ -66,6 +72,11 @@ private:
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	FVector DefaultDesignerActorExtent;
 
+	/** The array of assets which is selected in the content browser and is actually placeable */
+	TArray<FAssetData> PlaceableSelectedAssets;
+
+	/** The asset which should be spawned and is currently being previewed */
+	UObject* TargetAssetToSpawn;
 public:
 	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
 
@@ -157,6 +168,12 @@ public:
 	FORCEINLINE AActor* GetControlledActor() const { return SpawnedActor; }
 
 private:
+	/** Clears the PlaceableSelectedAssets array and fills it again with the placeable assets currently selected in the content browser */
+	void RefreshPlaceableSelectedAssets();
+
+	/** Helper function to see if asset data can be placed in the world */
+	bool IsAssetDataPlaceable(FAssetData AssetData);
+
 	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
 	bool UpdateSpawnVisualizerMaterialParameters();
 

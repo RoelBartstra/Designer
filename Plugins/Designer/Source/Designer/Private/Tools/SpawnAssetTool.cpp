@@ -55,6 +55,10 @@ FSpawnAssetTool::FSpawnAssetTool(UDesignerSettings* DesignerSettings)
 		check(SpawnVisualizerMID != nullptr);
 		StaticMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Designer/SM_SpawnVisualizer.SM_SpawnVisualizer"), nullptr, LOAD_None, nullptr);
 		check(StaticMesh != nullptr);
+		UMaterialInterface* SpawnActorPreviewMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Designer/MI_SpawnActorPreview.MI_SpawnActorPreview"), nullptr, LOAD_None, nullptr);
+		SpawnActorPreviewMID = UMaterialInstanceDynamic::Create(SpawnActorPreviewMaterial, GetTransientPackage());
+		UMaterialInterface* SpawnActorPreviewPulsingMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Designer/MI_SpawnActorPreviewPulsing.MI_SpawnActorPreviewPulsing"), nullptr, LOAD_None, nullptr);
+		SpawnActorPreviewPulsingMID = UMaterialInstanceDynamic::Create(SpawnActorPreviewPulsingMaterial, GetTransientPackage());
 	}
 
 	SpawnVisualizerComponent = NewObject<UStaticMeshComponent>(GetTransientPackage(), TEXT("SpawnVisualizerComponent"));
@@ -173,6 +177,10 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, tool activated"));
 			IsToolActive = true;
 			bHandled = true;
+
+
+
+
 		}
 		else if (Event == IE_Released)
 		{
@@ -201,63 +209,20 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 		GEditor->SelectNone(true, true, false);
 
-		bool bPlaceable = true;
-		TArray<FAssetData> SelectedAssets;
-		AssetSelectionUtils::GetSelectedAssets(SelectedAssets);
+		RefreshPlaceableSelectedAssets();
+
+		// Pick random asset to spawn.
 		FAssetData TargetAssetData;
-
-		if (TargetAssetData.GetClass() == UClass::StaticClass())
+		if (PlaceableSelectedAssets.Num() > 0)
 		{
-			UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
-
-			bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
+			TargetAssetData = PlaceableSelectedAssets[FMath::RandRange(0, PlaceableSelectedAssets.Num() - 1)];
 		}
 
-		if (SelectedAssets.Num() > 0)
+		TargetAssetToSpawn = TargetAssetData.GetAsset();
+		
+		if (IsValid(TargetAssetToSpawn))
 		{
-			TargetAssetData = SelectedAssets[FMath::RandRange(0, SelectedAssets.Num() - 1)];
-		}
-
-		if (TargetAssetData.GetClass() == UClass::StaticClass())
-		{
-			UClass* Class = Cast<UClass>(TargetAssetData.GetAsset());
-
-			bPlaceable = AssetSelectionUtils::IsClassPlaceable(Class);
-		}
-		else if (TargetAssetData.GetClass() == UBlueprint::StaticClass())
-		{
-			// For blueprints, attempt to determine placeability from its tag information
-
-			const FName NativeParentClassTag = TEXT("NativeParentClass");
-			const FName ClassFlagsTag = TEXT("ClassFlags");
-
-			FString TagValue;
-
-			if (TargetAssetData.GetTagValue(NativeParentClassTag, TagValue) && !TagValue.IsEmpty())
-			{
-				// If the native parent class can't be placed, neither can the blueprint.
-				UObject* Outer = nullptr;
-				ResolveName(Outer, TagValue, false, false);
-				UClass* NativeParentClass = FindObject<UClass>(ANY_PACKAGE, *TagValue);
-
-				bPlaceable = AssetSelectionUtils::IsClassPlaceable(NativeParentClass);
-			}
-
-			if (bPlaceable && TargetAssetData.GetTagValue(ClassFlagsTag, TagValue) && !TagValue.IsEmpty())
-			{
-				// Check to see if this class is placeable from its class flags
-				const int32 NotPlaceableFlags = CLASS_NotPlaceable | CLASS_Deprecated | CLASS_Abstract;
-				uint32 ClassFlags = FCString::Atoi(*TagValue);
-
-				bPlaceable = (ClassFlags & NotPlaceableFlags) == CLASS_None;
-			}
-		}
-
-		UObject* TargetAsset = TargetAssetData.GetAsset();
-
-		if (bPlaceable && IsValid(TargetAsset))
-		{
-			UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAsset);
+			UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetToSpawn);
 			if (ActorFactory)
 			{
 				// Recalculate mouse down, if it fails, return.
@@ -287,6 +252,11 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 				UpdateSpawnVisualizerMaterialParameters();
 
 				bHandled = true;
+				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
+			}
+			else
+			{
+				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: No actor factory for object"));
 			}
 		}
 	}
@@ -371,6 +341,64 @@ bool FSpawnAssetTool::BoxSelect(FBox& InBox, bool InSelect)
 bool FSpawnAssetTool::FrustumSelect(const FConvexVolume& InFrustum, FEditorViewportClient* InViewportClient, bool InSelect)
 {
 	return false;
+}
+
+void FSpawnAssetTool::RefreshPlaceableSelectedAssets()
+{
+	// Refresh selectable asset array;
+	PlaceableSelectedAssets.Empty();
+	TArray<FAssetData> SelectedAssets;
+	AssetSelectionUtils::GetSelectedAssets(SelectedAssets);
+	for (FAssetData AssetData : SelectedAssets)
+	{
+		if (IsAssetDataPlaceable(AssetData))
+		{
+			PlaceableSelectedAssets.Add(AssetData);
+		}
+	}
+
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: %d placeable assets"), PlaceableSelectedAssets.Num());
+}
+
+bool FSpawnAssetTool::IsAssetDataPlaceable(FAssetData AssetData)
+{
+	bool bPlaceable = false;
+
+	UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(AssetData.GetAsset());
+	bPlaceable = ActorFactory != nullptr;
+
+	if (AssetData.GetClass() == UBlueprint::StaticClass() && bPlaceable)
+	{
+		// For blueprints, attempt to determine placeability from its tag information
+
+		const FName NativeParentClassTag = TEXT("NativeParentClass");
+		const FName ClassFlagsTag = TEXT("ClassFlags");
+
+		FString TagValue;
+
+		if (AssetData.GetTagValue(NativeParentClassTag, TagValue) && !TagValue.IsEmpty())
+		{
+			// If the native parent class can't be placed, neither can the blueprint.
+			UObject* Outer = nullptr;
+			ResolveName(Outer, TagValue, false, false);
+			UClass* NativeParentClass = FindObject<UClass>(ANY_PACKAGE, *TagValue);
+
+			bPlaceable = AssetSelectionUtils::IsClassPlaceable(NativeParentClass);
+		}
+
+		if (bPlaceable && AssetData.GetTagValue(ClassFlagsTag, TagValue) && !TagValue.IsEmpty())
+		{
+			// Check to see if this class is placeable from its class flags
+			const int32 NotPlaceableFlags = CLASS_NotPlaceable | CLASS_Deprecated | CLASS_Abstract;
+			uint32 ClassFlags = FCString::Atoi(*TagValue);
+
+			bPlaceable = (ClassFlags & NotPlaceableFlags) == CLASS_None;
+		}
+
+		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: is placeable blueprint class: %s"), (bPlaceable ? TEXT("True") : TEXT("False")));
+	}
+
+	return bPlaceable;
 }
 
 bool FSpawnAssetTool::UpdateSpawnVisualizerMaterialParameters()
