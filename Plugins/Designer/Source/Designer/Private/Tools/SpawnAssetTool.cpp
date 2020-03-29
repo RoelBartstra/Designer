@@ -113,38 +113,34 @@ bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) con
 
 bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::MouseLeave(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::ReceivedFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* InViewportClient, FViewport* InViewport, int32 InMouseX, int32 InMouseY)
 {
-	bool bHandled = false;
+	bool bHandled = IsToolActive;
 
-	if (SpawnedActor == nullptr)
-	{
-		return bHandled;
-	}
-	else
+	if (SpawnedActor != nullptr)
 	{
 		RecalculateMousePlaneIntersectionWorldLocation(InViewportClient, InViewport);
 		UpdateDesignerActorTransform();
@@ -158,17 +154,17 @@ bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* InViewportClient,
 
 bool FSpawnAssetTool::InputAxis(FEditorViewportClient* InViewportClient, FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewport* InViewport, FVector& InDrag, FRotator& InRot, FVector& InScale)
 {
-	return false;
+	return IsToolActive;
 }
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	bool bHandled = false;
+	bool bHandled = IsToolActive;
 
 	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
 	{
@@ -318,8 +314,6 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			SpawnVisualizerComponent->UnregisterComponent();
 		}
 
-		IsToolActive = false;
-
 		bHandled = true;
 	}
 
@@ -361,8 +355,6 @@ void FSpawnAssetTool::EndTrans()
 
 void FSpawnAssetTool::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
 {
-	if (SpawnedActor == nullptr)
-		RecalculateSpawnTransform(ViewportClient, ViewportClient->Viewport);
 
 }
 
