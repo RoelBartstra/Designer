@@ -39,11 +39,15 @@ class UStaticMeshComponent;
 class FSpawnAssetTool : public FDesignerTool
 {
 private:
-	AActor* SpawnActorPreview;
+	TArray<AActor*> PreviewActorArray;
 
-	UMaterialInstanceDynamic* SpawnActorPreviewMID;
+	AActor* PreviewActor;
 
-	UMaterialInstanceDynamic* SpawnActorPreviewPulsingMID;
+	AActor* PreviewActorPulsing;
+
+	UMaterialInstanceDynamic* PreviewActorMID;
+
+	UMaterialInstanceDynamic* PreviewActorPulsingMID;
 
 	/** The static mesh of the Spawn visualizer component */
 	UStaticMeshComponent* SpawnVisualizerComponent;
@@ -76,7 +80,7 @@ private:
 	TArray<FAssetData> PlaceableSelectedAssets;
 
 	/** The asset which should be spawned and is currently being previewed */
-	UObject* TargetAssetToSpawn;
+	FAssetData TargetAssetDataToSpawn;
 public:
 	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
 
@@ -168,6 +172,16 @@ public:
 	FORCEINLINE AActor* GetControlledActor() const { return SpawnedActor; }
 
 private:
+	virtual void SetToolActive(bool IsActive) override;
+
+	void SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material);
+
+	/** Create all preview actors */
+	void RefreshPreviewActors();
+
+	/** Destroy all preview actors */
+	void DestroyPreviewActors();
+
 	/** Clears the PlaceableSelectedAssets array and fills it again with the placeable assets currently selected in the content browser */
 	void RefreshPlaceableSelectedAssets();
 
@@ -183,8 +197,11 @@ private:
 	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
 	void RecalculateMousePlaneIntersectionWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
-	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
-	void UpdateDesignerActorTransform();
+	/** Updates the spawned actor transform */
+	void UpdateSpawnedActorTransform();
+
+	/** Updates the preview actor transform */
+	void UpdatePreviewActorsTransform();
 
 	/** Generate new random rotation offset */
 	void RegenerateRandomRotationOffset();

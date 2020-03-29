@@ -49,6 +49,9 @@ public:
 	/** Called by the designer ed mode when switching to another tool from this tool */
 	virtual void ExitTool() {}
 
+    /** Determines whether the tool is currently in use or not */
+    virtual void SetToolActive(bool IsActive) {}
+
 	/** Check to see if an actor can be selected in this mode - no side effects */
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const { return true; }
 
