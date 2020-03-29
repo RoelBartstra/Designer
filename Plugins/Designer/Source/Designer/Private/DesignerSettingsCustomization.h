@@ -38,9 +38,9 @@ class FDesignerSettingsRootObjectCustomization : public IDetailRootObjectCustomi
 {
 public:
 	/** IDetailRootObjectCustomization interface */
-	virtual TSharedPtr<SWidget> CustomizeObjectHeader(const UObject* InRootObject) override;
-	virtual bool IsObjectVisible(const UObject* InRootObject) const override { return true; }
-	virtual bool ShouldDisplayHeader(const UObject* InRootObject) const override { return false; }
+    virtual TSharedPtr<SWidget> CustomizeObjectHeader(const FDetailsObjectSet& InRootObjectSet, const TSharedPtr<ITableRow>& InTableRow) override;
+    virtual bool AreObjectsVisible(const FDetailsObjectSet& InRootObjectSet) const override { return true; }
+    virtual bool ShouldDisplayHeader(const FDetailsObjectSet& InRootObjectSet) const override { return false; }
  };
 
 /**

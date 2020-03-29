@@ -110,7 +110,7 @@ void FDesignerSettingsCustomization::OnPaintTypeChanged(IDetailLayoutBuilder* La
 	LayoutBuilder->ForceRefreshDetails();
 }
 
-TSharedPtr<SWidget> FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader(const UObject* InRootObject)
+TSharedPtr<SWidget> FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader(const FDetailsObjectSet& InRootObjectSet, const TSharedPtr<ITableRow>& InTableRow)
 {
 	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader"));
 	return SNullWidget::NullWidget;
