@@ -38,7 +38,7 @@ void FDesignerModule::StartupModule()
 {
 	FDesignerSlateStyle::Initialize();
 
-	FSlateIcon DesignerIcon = FSlateIcon(FDesignerSlateStyle::Get()->GetStyleSetName(), "Designer.Icon");
+	FSlateIcon DesignerIcon = FSlateIcon(FDesignerSlateStyle::Get()->GetStyleSetName(), "Designer.Icon", "Designer.Icon.Small");
 
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
 	FEditorModeRegistry::Get().RegisterMode<FDesignerEdMode>(FDesignerEdMode::EM_DesignerEdModeId, LOCTEXT("DesignerEdModeName", "Designer"), DesignerIcon, true, 100);
