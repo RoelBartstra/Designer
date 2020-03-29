@@ -393,34 +393,28 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 {
 	FTransform NewSpawnTransform = FTransform(FQuat::Identity, FVector::ZeroVector, FVector::OneVector);
 
+	const int32	HitX = Viewport->GetMouseX();
+	const int32	HitY = Viewport->GetMouseY();
+
 	FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(
 		Viewport,
 		ViewportClient->GetScene(),
 		ViewportClient->EngineShowFlags)
 		.SetRealtimeUpdate(ViewportClient->IsRealtime()));
-	// SceneView is deleted with the ViewFamily
-	FSceneView* SceneView = ViewportClient->CalcSceneView(&ViewFamily);
+	FSceneView* View = ViewportClient->CalcSceneView(&ViewFamily);	
 
-	FViewportCursorLocation MouseViewportRay(SceneView, ViewportClient, Viewport->GetMouseX(), Viewport->GetMouseY());
+	const FViewportCursorLocation Cursor(View, ViewportClient, HitX, HitY);
+	const FActorPositionTraceResult TraceResult = FActorPositioning::TraceWorldForPositionWithDefault(Cursor, *View);
 
-	FVector TraceStartLocation = MouseViewportRay.GetOrigin();
-	FVector TraceDirection = MouseViewportRay.GetDirection();
-	FVector TraceEndLocation = TraceStartLocation + TraceDirection * WORLD_MAX;
-	if (ViewportClient->IsOrtho())
-	{
-		TraceStartLocation += -WORLD_MAX * TraceDirection;
-	}
-
-	FActorPositionTraceResult ActorPositionTraceResult = FActorPositioning::TraceWorldForPositionWithDefault(MouseViewportRay, *SceneView);
-
-	if (ActorPositionTraceResult.HitActor == nullptr)
+	// For some reason the state is default when it fails to hit anything.
+	if (TraceResult.State == FActorPositionTraceResult::Default)
 	{
 		return false;
 	}
 
-	NewSpawnTransform.SetLocation(ActorPositionTraceResult.Location);
+	NewSpawnTransform.SetLocation(TraceResult.Location);
 
-	FRotator CursorWorldRotation = FRotationMatrix::MakeFromZX(GetDesignerSettings()->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : ActorPositionTraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
+	FRotator CursorWorldRotation = FRotationMatrix::MakeFromZX(GetDesignerSettings()->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : TraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
 
 	FRotator SpawnRotationSnapped = CursorWorldRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
