@@ -37,6 +37,9 @@
 #include "EditorViewportClient.h"
 #include "SnappingUtils.h"
 #include "Editor/UnrealEd/Private/Editor/ActorPositioning.h"
+#include "Editor/UnrealEd/Classes/ActorFactories/ActorFactory.h"
+#include "Runtime/Engine/Public/LevelUtils.h"
+#include "Runtime/Core/Public/Internationalization/Internationalization.h"
 
 #include "DesignerSettings.h"
 
@@ -70,6 +73,10 @@ FSpawnAssetTool::FSpawnAssetTool(UDesignerSettings* DesignerSettings)
 	SpawnVisualizerComponent->SetMaterial(0, SpawnVisualizerMID);
 	SpawnVisualizerComponent->SetAbsolute(true, true, true);
 	SpawnVisualizerComponent->CastShadow = false;
+
+	// For debugging.
+	DesignerSettings->PreviewActorMaterial = PreviewActorMID;
+	DesignerSettings->PreviewActorPulsingMaterial = PreviewActorPulsingMID;
 }
 
 FSpawnAssetTool::~FSpawnAssetTool()
@@ -108,18 +115,20 @@ void FSpawnAssetTool::ExitTool()
 
 bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
-	if (SpawnedActor)
-		return InActor == SpawnedActor && !FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size());
+	//if (IsValid(SpawnedActor))
+	//	return InActor == SpawnedActor && !FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size());
 
-	// Make sure select none works when spawning actor.
-	if (InActor != SpawnedActor && !bInSelection)
-		return true;
+	//// Make sure select none works when spawning actor.
+	//if (InActor != SpawnedActor && !bInSelection)
+	//	return true;
 
 	return !IsToolActive;
 }
 
 bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseEnter"));
+
 	RefreshPreviewActors();
 
 	return IsToolActive;
@@ -127,6 +136,8 @@ bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewpor
 
 bool FSpawnAssetTool::MouseLeave(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseLeave"));
+
 	DestroyPreviewActors();
 
 	return IsToolActive;
@@ -145,6 +156,7 @@ bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport
 
 bool FSpawnAssetTool::ReceivedFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::Receive focus"));
 	return IsToolActive;
 }
 
@@ -184,15 +196,16 @@ bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewp
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	bool bHandled = IsToolActive;
+	bool bHandled = false;
+
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
 
 	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
 	{
-		if (Event == IE_Pressed)
+		if (Event == IE_Pressed && !IsToolActive)
 		{
 			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, tool activated"));
 			RefreshPlaceableSelectedAssets();
-			bHandled = true;
 
 			// Pick random asset to spawn.
 			if (PlaceableSelectedAssets.Num() > 0)
@@ -217,7 +230,6 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 					RefreshPreviewActors();
 
-					bHandled = true;
 					UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
 				}
 				else
@@ -226,7 +238,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 				}
 			}
 		}
-		else if (Event == IE_Released)
+		else if (Event == IE_Released && IsToolActive)
 		{
 			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey, tool deactivated"));
 			SetToolActive(false);
@@ -234,6 +246,11 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 
 			TargetAssetDataToSpawn = FAssetData();
 			DestroyPreviewActors();
+
+			if (SpawnedActor != nullptr)
+			{
+				GEditor->SelectActor(SpawnedActor, true, true, true, true);
+			}
 		}
 	}
 
@@ -307,12 +324,12 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			SpawnedActor->Destroy(false, false);
 			GEditor->RedrawLevelEditingViewports();
 		}
-		else
-		{
-			GEditor->SelectActor(SpawnedActor, true, true, true, true);
-		}
+		//else
+		//{
+		//	GEditor->SelectActor(SpawnedActor, true, true, true, true);
+		//}
 
-		SpawnedActor = nullptr;
+		//SpawnedActor = nullptr;
 		DefaultDesignerActorExtent = FVector::ZeroVector;
 
 		if (SpawnVisualizerComponent->IsRegistered())
@@ -320,7 +337,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			SpawnVisualizerComponent->UnregisterComponent();
 		}
 
-		RefreshPreviewActors();
+		//DestroyPreviewActors();
 
 		bHandled = true;
 	}
@@ -400,13 +417,13 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 
 void FSpawnAssetTool::SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material)
 {
-	if (Actor != nullptr && Material != nullptr)
+	if (IsValid(Actor) && IsValid(Material))
 	{
 		TArray<UPrimitiveComponent*> PrimitiveComponentArray;
 		Actor->GetComponents<UPrimitiveComponent>(PrimitiveComponentArray, true);
 		for (UPrimitiveComponent* PrimitiveComponent : PrimitiveComponentArray)
 		{
-			if (PrimitiveComponent != nullptr)
+			if (IsValid(PrimitiveComponent))
 			{
 				for (int32 MaterialIndex = 0; MaterialIndex < PrimitiveComponent->GetNumMaterials(); MaterialIndex++)
 				{
@@ -426,17 +443,17 @@ void FSpawnAssetTool::RefreshPreviewActors()
 	UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
 	if (TargetAssetDataToSpawn.GetClass() != nullptr)
 	{
-		PreviewActor = GEditor->UseActorFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
-		if (PreviewActor != nullptr)
+		PreviewActor = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
+		if (IsValid(PreviewActor) && PreviewActor->IsValidLowLevel())
 		{
 			PreviewActorArray.Add(PreviewActor);
 			PreviewActor->SetActorLabel("DesignerPreviewActor");
 			SetAllMaterialsForActor(PreviewActor, PreviewActorMID);
 		}
 
-		PreviewActorPulsing = GEditor->UseActorFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
+		PreviewActorPulsing = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
 		
-		if (PreviewActorPulsing != nullptr)
+		if (IsValid(PreviewActorPulsing) && PreviewActorPulsing->IsValidLowLevel())
 		{
 			PreviewActorArray.Add(PreviewActorPulsing);
 			PreviewActorPulsing->SetActorLabel("DesignerPreviewActorPulsing");
@@ -452,13 +469,110 @@ void FSpawnAssetTool::DestroyPreviewActors()
 
 	for (AActor* Actor : PreviewActorArray)
 	{
-		if (Actor != nullptr)
+		if (IsValid(Actor))
 		{
-			Actor->Destroy(false, false);
+			Actor->Destroy(false, true);
 		}
 	}
 
 	PreviewActorArray.Empty();
+}
+
+AActor* FSpawnAssetTool::SpawnPreviewActorFromFactory(UActorFactory* Factory, const FAssetData& AssetData, const FTransform* InActorTransform, EObjectFlags InObjectFlags)
+{
+	check(Factory);
+
+	bool bIsAllowedToCreateActor = true;
+
+	FText ActorErrorMsg;
+	if (!Factory->CanCreateActorFrom(AssetData, ActorErrorMsg))
+	{
+		bIsAllowedToCreateActor = false;
+		if (!ActorErrorMsg.IsEmpty())
+		{
+			FMessageLog EditorErrors("EditorErrors");
+			EditorErrors.Warning(ActorErrorMsg);
+			EditorErrors.Notify();
+		}
+	}
+
+	//Load Asset
+	UObject* Asset = AssetData.GetAsset();
+
+	UWorld* OldWorld = nullptr;
+
+	//// The play world needs to be selected if it exists
+	//if (GIsEditor && PlayWorld && !GIsPlayInEditorWorld)
+	//{
+	//	OldWorld = SetPlayInEditorWorld(PlayWorld);
+	//}
+
+	AActor* Actor = NULL;
+	if (bIsAllowedToCreateActor)
+	{
+		AActor* NewActorTemplate = Factory->GetDefaultActor(AssetData);
+
+		if (!NewActorTemplate)
+		{
+			return NULL;
+		}
+
+		const FTransform ActorTransform = InActorTransform ? *InActorTransform : FActorPositioning::GetCurrentViewportPlacementTransform(*NewActorTemplate);
+
+		ULevel* DesiredLevel = GWorld->GetCurrentLevel();
+
+		// Don't spawn the actor if the current level is locked.
+		if (!FLevelUtils::IsLevelLocked(DesiredLevel))
+		{
+			// Check to see if the level it's being added to is hidden and ask the user if they want to proceed
+			const bool bLevelVisible = FLevelUtils::IsLevelVisible(DesiredLevel);
+			//if (bLevelVisible || EAppReturnType::Ok == FMessageDialog::Open(EAppMsgType::OkCancel, FText::Format(LOCTEXT("CurrentLevelHiddenActorWillAlsoBeHidden", "Current level [{0}] is hidden, actor will also be hidden until level is visible"), FText::FromString(DesiredLevel->GetOutermost()->GetName()))))
+			//{
+				//const FScopedTransaction Transaction(NSLOCTEXT("UnrealEd", "CreateActor", "Create Actor"));
+
+				// Create the actor.
+				Actor = Factory->CreateActor(Asset, DesiredLevel, ActorTransform, InObjectFlags);
+				if (Actor != NULL)
+				{
+					//SelectNone(false, true);
+					//SelectActor(Actor, true, true);
+					//Actor->InvalidateLightingCache();
+					Actor->PostEditMove(true);
+
+					// Make sure the actors visibility reflects that of the level it's in
+					if (!bLevelVisible)
+					{
+						Actor->bHiddenEdLevel = true;
+						// We update components, so things like draw scale take effect.
+						Actor->ReregisterAllComponents(); // @todo UE4 insist on a property update callback
+					}
+				}
+
+				//RedrawLevelEditingViewports();
+
+
+				if (Actor)
+				{
+					Actor->MarkPackageDirty();
+					ULevel::LevelDirtiedEvent.Broadcast();
+				}
+			//}
+		}
+		else
+		{
+			//FNotificationInfo Info(NSLOCTEXT("UnrealEd", "Error_OperationDisallowedOnLockedLevel", "The requested operation could not be completed because the level is locked."));
+			//Info.ExpireDuration = 3.0f;
+			//FSlateNotificationManager::Get().AddNotification(Info);
+		}
+	}
+
+	//// Restore the old world if there was one
+	//if (OldWorld)
+	//{
+	//	RestoreEditorWorld(OldWorld);
+	//}
+
+	return Actor;
 }
 
 void FSpawnAssetTool::RefreshPlaceableSelectedAssets()
