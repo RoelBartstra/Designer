@@ -56,7 +56,7 @@ private:
 
 	/** The static mesh of the Spawn visualizer component */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
-	UStaticMeshComponent* SpawnVisualizerComponent;
+	UStaticMeshComponent* SpawnPlaneComponent;
 
 	/** The material instance dynamic of the Spawn visualizer component */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
@@ -216,11 +216,11 @@ private:
 	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
 	void RecalculateMousePlaneIntersectionWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
+	/** Update the preview actors transform */
+	void UpdatePreviewActorTransform();
+
 	/** Updates the spawned actor transform */
 	void UpdateSpawnedActorTransform();
-
-	/** Updates the preview actor transform */
-	void UpdatePreviewActorsTransform();
 
 	/** Generate new random rotation offset */
 	void RegenerateRandomRotationOffset();
@@ -232,8 +232,8 @@ private:
 	void RegenerateRandomScale();
 
 	/** The random scale applied to the designer actor */
-	FVector GetRandomScale() const;
+	FVector GetSpawnActorScale() const;
 
 	/** Get the designer actor rotation with all settings applied to it */
-	FRotator GetDesignerActorRotation();
+	FRotator GetSpawnActorRotation();
 };
