@@ -134,9 +134,10 @@ bool FSpawnAssetTool::MouseLeave(FEditorViewportClient* ViewportClient, FViewpor
 	return IsToolActive;
 }
 
+// Called when no mouse button is down, so can be used for the preview asset when the user holds down ctrl.
 bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseMove"));
+	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseMove"));
 
 	// Force user focus when mouse is moving in viewport so the input keys keep on working.
 	Viewport->SetUserFocus(true);
@@ -172,9 +173,10 @@ bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport
 	return false;
 }
 
+// Called when a mouse button is down in viewport, so can be used for when the user is placing an asset.
 bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 InMouseX, int32 InMouseY)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::CapturedMouseMove"));
+	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::CapturedMouseMove"));
 	bool bHandled = IsToolActive;
 
 	//if (SpawnedActor != nullptr)
@@ -191,19 +193,19 @@ bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* ViewportClient, F
 
 bool FSpawnAssetTool::InputAxis(FEditorViewportClient* InViewportClient, FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputAxis"));
+	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputAxis"));
 	return IsToolActive;
 }
 
 bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewport* InViewport, FVector& InDrag, FRotator& InRot, FVector& InScale)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputDelta"));
+	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputDelta"));
 	return IsToolActive;
 }
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
+	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
 	bool bHandled = false;
 
 	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
@@ -212,48 +214,15 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		{
 			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Tool activated."));
 
-			RefreshPlaceableSelectedAssets();
+			RefreshPlaceableAsset();
 
-			// Pick random asset to spawn.
-			if (PlaceableSelectedAssets.Num() > 0)
-			{
-				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Picked new random asset."));
-				TargetAssetDataToSpawn = PlaceableSelectedAssets[FMath::RandRange(0, PlaceableSelectedAssets.Num() - 1)];
-			}
+			// Calculate world location from mouse position.
+			RecalculateSpawnTransform(ViewportClient, Viewport);
 
-			if (TargetAssetDataToSpawn.GetAsset() != nullptr)
-			{
-				UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
-				if (ActorFactory != nullptr)
-				{
-					//// Recalculate mouse down, if it fails, return.
-					//if (!RecalculateSpawnTransform(ViewportClient, Viewport))
-					//	return bHandled;
+			// Update actors with new transformation data.
+			UpdatePreviewActorTransform();
 
-					SetToolActive(true);
-
-					// Create preview actors.
-					RefreshPreviewActors();
-
-					// Generate random data.
-					RegenerateRandomRotationOffset();
-					RegenerateRandomScale();
-
-					// Calculate world location from mouse position.
-					RecalculateSpawnTransform(ViewportClient, Viewport);
-
-					// Update actors with new transformation data.
-					UpdatePreviewActorTransform();
-
-					bHandled = true;
-
-					UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
-				}
-				else
-				{
-					UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: No actor factory for object"));
-				}
-			}
+			bHandled = true;
 		}
 		else if (Event == IE_Released && IsToolActive)
 		{
@@ -274,13 +243,23 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	}
 
 	// Randomize the object again if right mouse button is pressed in this mode.
-	if (Key == EKeys::RightMouseButton && Event == IE_Pressed && SpawnedActor != nullptr && IsToolActive)
+	if (Key == EKeys::RightMouseButton && Event == IE_Pressed && IsToolActive)
 	{
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Regenerate random data for spawned actor."));
 
-		//RegenerateRandomRotationOffset();
-		//RegenerateRandomScale();
-		//UpdateSpawnedActorTransform();
+		RegenerateRandomRotationOffset();
+		RegenerateRandomScale();
+
+		if (PreviewActorArray.Num() > 0)
+		{
+			UpdatePreviewActorTransform();
+		}
+
+		if (SpawnedActor != nullptr)
+		{
+			UpdateSpawnedActorTransform();
+		}
+
 		//UpdateSpawnVisualizerMaterialParameters();
 
 		bHandled = true;
@@ -362,7 +341,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	}
 
 	return bHandled;
-}
+} 
 
 void FSpawnAssetTool::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
 {
@@ -379,9 +358,18 @@ void FSpawnAssetTool::DrawHUD(FEditorViewportClient* ViewportClient, FViewport* 
 
 }
 
+// This is called when the left or right mouse button is pressed twice?!?!?!
 bool FSpawnAssetTool::StartModify()
 {
 	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::StartModify"));
+
+	// If user double clicks mouse button while in preview mode it will get a new actor.
+	if (PreviewActorArray.Num() > 0)
+	{
+		RefreshPlaceableAsset();
+		return true;
+	}
+
 	return false;
 }
 
@@ -475,7 +463,7 @@ void FSpawnAssetTool::RefreshPreviewActors()
 		{
 			PreviewActorArray.Add(PreviewActor);
 			PreviewActor->SetActorLabel("DesignerPreviewActor");
-			SetAllMaterialsForActor(PreviewActor, PreviewActorMID);
+			//SetAllMaterialsForActor(PreviewActor, PreviewActorMID);
 		}
 
 		PreviewActorPulsing = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
@@ -484,7 +472,7 @@ void FSpawnAssetTool::RefreshPreviewActors()
 		{
 			PreviewActorArray.Add(PreviewActorPulsing);
 			PreviewActorPulsing->SetActorLabel("DesignerPreviewActorPulsing");
-			SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMID);
+			//SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMID);
 		}
 
 	}
@@ -604,7 +592,7 @@ AActor* FSpawnAssetTool::SpawnPreviewActorFromFactory(UActorFactory* Factory, co
 	return Actor;
 }
 
-void FSpawnAssetTool::RefreshPlaceableSelectedAssets()
+void FSpawnAssetTool::RefreshPlaceableAsset()
 {
 	// Refresh selectable asset array;
 	PlaceableSelectedAssets.Empty();
@@ -618,7 +606,47 @@ void FSpawnAssetTool::RefreshPlaceableSelectedAssets()
 		}
 	}
 
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: %d placeable assets"), PlaceableSelectedAssets.Num());
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: %d placeable assets selected in the content browser."), PlaceableSelectedAssets.Num());
+	
+	// Pick random asset to spawn.
+	if (PlaceableSelectedAssets.Num() > 0)
+	{
+		if (PlaceableSelectedAssets.Num() == 1)
+		{
+			TargetAssetDataToSpawn = PlaceableSelectedAssets[0];
+		}
+		else
+		{
+			// Remove previous asset, so a random selected asset is always a new one.
+			PlaceableSelectedAssets.Remove(TargetAssetDataToSpawn);
+			TargetAssetDataToSpawn = PlaceableSelectedAssets[FMath::RandRange(0, PlaceableSelectedAssets.Num() - 1)];
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool:RefreshPlaceableAsset: Picked new random asset."));
+		}
+	}
+
+	if (TargetAssetDataToSpawn.GetAsset() != nullptr)
+	{
+		UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
+		if (ActorFactory != nullptr)
+		{
+			//// Recalculate mouse down, if it fails, return.
+			//if (!RecalculateSpawnTransform(ViewportClient, Viewport))
+			//	return bHandled;
+
+			SetToolActive(true);
+
+			// Create preview actors.
+			RefreshPreviewActors();
+
+			// Generate random data.
+			RegenerateRandomRotationOffset();
+			RegenerateRandomScale();
+		}
+		else
+		{
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: No actor factory for object"));
+		}
+	}
 }
 
 bool FSpawnAssetTool::IsAssetDataPlaceable(FAssetData AssetData)
@@ -699,16 +727,9 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 	FSceneView* View = ViewportClient->CalcSceneView(&ViewFamily);	
 
 	const FViewportCursorLocation Cursor(View, ViewportClient, HitX, HitY);
-	const FActorPositionTraceResult TraceResult = FActorPositioning::TraceWorldForPositionWithDefault(Cursor, *View, &PreviewActorArray);
-
-	//if (TraceResult.HitActor == nullptr)
-	//{
-	//	UE_LOG(LogDesigner, Warning, TEXT("Hit Actor = NULL."));
-	//}
-	//else
-	//{
-	//	UE_LOG(LogDesigner, Warning, TEXT("Hit Actor = %s."), *TraceResult.HitActor->GetName());
-	//}
+	
+	// Trace world, ignore preview actors.
+	const FActorPositionTraceResult TraceResult = FActorPositioning::TraceWorldForPositionWithDefault(Cursor, *View, &PreviewActorArray); 
 
 	// For some reason the state is default when it fails to hit anything.
 	if (TraceResult.State == FActorPositionTraceResult::Default)
@@ -718,7 +739,8 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 
 	NewSpawnTransform.SetLocation(TraceResult.Location);
 
-	FRotator CursorWorldRotation = FRotationMatrix::MakeFromZX(GetDesignerSettings()->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : TraceResult.SurfaceNormal, FVector::ForwardVector).Rotator();
+	FVector RotationUpVector = GetDesignerSettings()->AxisToAlignWithNormal == EAxisType::None ? FVector::UpVector : TraceResult.SurfaceNormal;
+	FRotator CursorWorldRotation = FRotationMatrix::MakeFromZX(RotationUpVector, FVector::ForwardVector).Rotator();
 
 	FRotator SpawnRotationSnapped = CursorWorldRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
@@ -873,7 +895,8 @@ FRotator FSpawnAssetTool::GetSpawnActorRotation()
 	if (MouseDirection.IsNearlyZero())
 		MouseDirection = SpawnWorldTransform.GetRotation().GetForwardVector();
 
-	FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? SpawnWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
+	//FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? SpawnWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
+	FVector ForwardVector = SpawnWorldTransform.GetRotation().GetForwardVector();
 	FVector UpVector = SpawnWorldTransform.GetRotation().GetUpVector();
 
 	// if they're almost same, we need to find arbitrary vector

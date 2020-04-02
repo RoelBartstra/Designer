@@ -202,7 +202,7 @@ private:
 	AActor* SpawnPreviewActorFromFactory(UActorFactory* Factory, const FAssetData& AssetData, const FTransform* InActorTransform, EObjectFlags InObjectFlags);
 
 	/** Clears the PlaceableSelectedAssets array and fills it again with the placeable assets currently selected in the content browser */
-	void RefreshPlaceableSelectedAssets();
+	void RefreshPlaceableAsset();
 
 	/** Helper function to see if asset data can be placed in the world */
 	bool IsAssetDataPlaceable(FAssetData AssetData);
