@@ -84,7 +84,11 @@ private:
 
 	/** The actor currently controlled by the designer editor mode */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
-	AActor* SpawnedActor;
+	AActor* ControlledSpawnedActor;
+
+	/** The last spawned actor released by the tool, so not in control anymore */
+	UPROPERTY(Category = "SpawnAsset", NonTransactional)
+	AActor* ReleasedSpawnedActor;
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
@@ -189,7 +193,7 @@ public:
 	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }
 
 	/** The actor currently controlled by the designer editor mode */
-	FORCEINLINE AActor* GetControlledActor() const { return SpawnedActor; }
+	FORCEINLINE AActor* GetControlledActor() const { return ControlledSpawnedActor; }
 
 private:
 	virtual void SetToolActive(bool IsActive) override;

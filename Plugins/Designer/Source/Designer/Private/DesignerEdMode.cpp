@@ -89,48 +89,48 @@ void FDesignerEdMode::Exit()
 	FEdMode::Exit();
 }
 
-bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport)
-{
-	bool bHandled = FEdMode::LostFocus(ViewportClient, Viewport);
-	return bHandled;
-}
-
-bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
-{
-	bool bHandled = false;
-
-	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
-	{
-		if (Event == IE_Pressed)
-		{
-			bHandled = true;
-		}
-		else if (Event == IE_Released)
-		{
-			bHandled = true;
-		}
-	}
-
-	bool bHandledInSuper = FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
-
-	return bHandled || bHandledInSuper;
-}
-
-bool FDesignerEdMode::DisallowMouseDeltaTracking() const
-{
-	bool bResult = false;
-	FDesignerTool* CurrentDesignerTool = static_cast<FDesignerTool*>(CurrentTool);
-	if (CurrentDesignerTool)
-	{
-		bResult = CurrentDesignerTool->IsToolActive;
-	}
-	return bResult;
-}
-
-bool FDesignerEdMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
-{
-	return false;
-}
+//bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport)
+//{
+//	bool bHandled = FEdMode::LostFocus(ViewportClient, Viewport);
+//	return bHandled;
+//}
+//
+//bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
+//{
+//	bool bHandled = false;
+//
+//	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
+//	{
+//		if (Event == IE_Pressed)
+//		{
+//			bHandled = true;
+//		}
+//		else if (Event == IE_Released)
+//		{
+//			bHandled = true;
+//		}
+//	}
+//
+//	bool bHandledInSuper = FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
+//
+//	return bHandled || bHandledInSuper;
+//}
+//
+//bool FDesignerEdMode::DisallowMouseDeltaTracking() const
+//{
+//	bool bResult = false;
+//	FDesignerTool* CurrentDesignerTool = static_cast<FDesignerTool*>(CurrentTool);
+//	if (CurrentDesignerTool)
+//	{
+//		bResult = CurrentDesignerTool->IsToolActive;
+//	}
+//	return bResult;
+//}
+//
+//bool FDesignerEdMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
+//{
+//	return false;
+//}
 
 bool FDesignerEdMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
 {
