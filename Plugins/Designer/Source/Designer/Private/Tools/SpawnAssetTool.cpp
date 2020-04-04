@@ -73,10 +73,6 @@ FSpawnAssetTool::FSpawnAssetTool(UDesignerSettings* DesignerSettings)
 	SpawnPlaneComponent->SetMaterial(0, SpawnVisualizerMID);
 	SpawnPlaneComponent->SetAbsolute(true, true, true);
 	SpawnPlaneComponent->CastShadow = false;
-
-	// For debugging.
-	DesignerSettings->PreviewActorMaterial = PreviewActorMID;
-	DesignerSettings->PreviewActorPulsingMaterial = PreviewActorPulsingMID;
 }
 
 FSpawnAssetTool::~FSpawnAssetTool()
@@ -117,28 +113,19 @@ bool FSpawnAssetTool::IsSelectionAllowed(AActor* InActor, bool bInSelection) con
 
 bool FSpawnAssetTool::MouseEnter(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseEnter"));
-
-
-	//RefreshPreviewActors();
-
+	// Make sure we are in full control of the mouse behavior when the tool is active.
 	return IsToolActive;
 }
 
 bool FSpawnAssetTool::MouseLeave(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseLeave"));
-
-	//DestroyPreviewActors();
-
+	// Make sure we are in full control of the mouse behavior when the tool is active.
 	return IsToolActive;
 }
 
 // Called when no mouse button is down, so can be used for the preview asset when the user holds down ctrl.
 bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::MouseMove"));
-
 	// Force user focus when mouse is moving in viewport so the input keys keep on working.
 	Viewport->SetUserFocus(true);
 
@@ -151,6 +138,10 @@ bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport
 		}
 
 		RecalculateSpawnTransform(ViewportClient, Viewport);
+
+		// Update the cursor plane world location to be the same as the spawn location so the rotation calculation is done properly.
+		CursorPlaneIntersectionWorldLocation = SpawnWorldTransform.GetLocation();
+
 		UpdatePreviewActorTransform();
 	}
 
@@ -159,14 +150,12 @@ bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport
 
 bool FSpawnAssetTool::ReceivedFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::ReceivedFocus"));
+	// Make sure we are in full control when the tool is active.
 	return IsToolActive;
 }
 
 bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::LostFocus"));
-
 	// When focus is lost the tool has to be disabled to fix issues with the current state based on the keys pressed by the user.
 	SetToolActive(false);
 
@@ -176,30 +165,29 @@ bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport
 // Called when a mouse button is down in viewport, so can be used for when the user is placing an asset.
 bool FSpawnAssetTool::CapturedMouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 InMouseX, int32 InMouseY)
 {
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::CapturedMouseMove"));
 	bool bHandled = IsToolActive;
 
-	//if (SpawnedActor != nullptr)
-	//{
-	//	RecalculateMousePlaneIntersectionWorldLocation(ViewportClient, Viewport);
-	//	UpdateSpawnedActorTransform();
-	//	UpdateSpawnVisualizerMaterialParameters();
+	if (SpawnedActor != nullptr)
+	{
+		RecalculateMousePlaneIntersectionWorldLocation(ViewportClient, Viewport);
+		UpdateSpawnedActorTransform();
+		UpdateSpawnVisualizerMaterialParameters();
 
-	//	bHandled = true;
-	//}
+		bHandled = true;
+	}
 
 	return bHandled;
 }
 
 bool FSpawnAssetTool::InputAxis(FEditorViewportClient* InViewportClient, FViewport* Viewport, int32 ControllerId, FKey Key, float Delta, float DeltaTime)
 {
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputAxis"));
+	// Make sure we are in full control when the tool is active.
 	return IsToolActive;
 }
 
 bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewport* InViewport, FVector& InDrag, FRotator& InRot, FVector& InScale)
 {
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputDelta"));
+	// Make sure we are in full control when the tool is active.
 	return IsToolActive;
 }
 
@@ -228,17 +216,8 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		{
 			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Tool deactivated"));
 			bHandled = true;
+
 			SetToolActive(false);
-
-			//bHandled = true;
-
-			//TargetAssetDataToSpawn = FAssetData();
-			//DestroyPreviewActors();
-
-			//if (SpawnedActor != nullptr)
-			//{
-			//	GEditor->SelectActor(SpawnedActor, true, true, true, true);
-			//}
 		}
 	}
 
@@ -260,7 +239,8 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			UpdateSpawnedActorTransform();
 		}
 
-		//UpdateSpawnVisualizerMaterialParameters();
+		// Instaly update the material else it might be out of date when the object is rescaled.
+		UpdateSpawnVisualizerMaterialParameters();
 
 		bHandled = true;
 	}
@@ -269,48 +249,46 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	{
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Spawn selected asset."));
 		bHandled = true;
-		
-		//DestroyPreviewActors();
 
-		//if (TargetAssetDataToSpawn.GetAsset() != nullptr)
-		//{
-		//	UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
-		//	if (ActorFactory)
-		//	{
-		//		// Recalculate mouse down, if it fails, return.
-		//		if (!RecalculateSpawnTransform(ViewportClient, Viewport))
-		//			return bHandled;
+		if (TargetAssetDataToSpawn.GetAsset() != nullptr)
+		{
+			UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
+			if (ActorFactory)
+			{
+				// Recalculate mouse down, if it fails, return.
+				if (!RecalculateSpawnTransform(ViewportClient, Viewport))
+					return bHandled;
 
-		//		SpawnedActor = GEditor->UseActorFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform);
+				DestroyPreviewActors();
 
-		//		DefaultDesignerActorExtent = SpawnedActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
+				SpawnedActor = GEditor->UseActorFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform);
 
-		//		// Properly reset data.
-		//		CursorPlaneIntersectionWorldLocation = SpawnWorldTransform.GetLocation();
-		//		SpawnTracePlane = FPlane();
+				DefaultSpawnedActorExtent = SpawnedActor->CalculateComponentsBoundingBoxInLocalSpace(true).GetExtent();
 
-		//		FTransform SpawnVisualizerTransform = SpawnWorldTransform;
-		//		SpawnVisualizerTransform.SetScale3D(FVector(10000));
-		//		SpawnVisualizerComponent->SetRelativeTransform(SpawnVisualizerTransform);
+				// Properly reset data.
+				CursorPlaneIntersectionWorldLocation = SpawnWorldTransform.GetLocation();
+				SpawnTracePlane = FPlane();
 
-		//		if (!SpawnVisualizerComponent->IsRegistered())
-		//		{
-		//			SpawnVisualizerComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
-		//		}
+				FTransform SpawnVisualizerTransform = SpawnWorldTransform;
+				SpawnVisualizerTransform.SetScale3D(FVector(10000));
+				SpawnPlaneComponent->SetRelativeTransform(SpawnVisualizerTransform);
 
-		//		RegenerateRandomRotationOffset();
-		//		RegenerateRandomScale();
-		//		UpdateSpawnedActorTransform();
-		//		UpdateSpawnVisualizerMaterialParameters();
+				if (!SpawnPlaneComponent->IsRegistered())
+				{
+					SpawnPlaneComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
+				}
 
-		//		bHandled = true;
-		//		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
-		//	}
-		//	else
-		//	{
-		//		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: No actor factory for object"));
-		//	}
-		//}
+				UpdateSpawnedActorTransform();
+				UpdateSpawnVisualizerMaterialParameters();
+
+				bHandled = true;
+				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
+			}
+			else
+			{
+				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: No actor factory for object"));
+			}
+		}
 	}
 
 	/** Left mouse button released while tool is active */
@@ -319,25 +297,24 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Free spawned actor"));
 		bHandled = true;
 
-		//if (SpawnedActor != nullptr && FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size()))
-		//{
-		//	SpawnedActor->Destroy(false, false);
-		//	GEditor->RedrawLevelEditingViewports();
-		//}
-		////else
-		////{
-		////	GEditor->SelectActor(SpawnedActor, true, true, true, true);
-		////}
+		if (SpawnedActor != nullptr)
+		{
+			RegenerateRandomRotationOffset();
+			RegenerateRandomScale();
 
-		////SpawnedActor = nullptr;
-		//DefaultDesignerActorExtent = FVector::ZeroVector;
+			if (FMath::IsNearlyZero(SpawnedActor->GetActorScale3D().Size()))
+			{
+				SpawnedActor->Destroy(false, false);
+				GEditor->RedrawLevelEditingViewports();
+			}
+		}
 
-		//if (SpawnVisualizerComponent->IsRegistered())
-		//{
-		//	SpawnVisualizerComponent->UnregisterComponent();
-		//}
+		DefaultSpawnedActorExtent = FVector::ZeroVector;
 
-		////DestroyPreviewActors();
+		if (SpawnPlaneComponent->IsRegistered())
+		{
+			SpawnPlaneComponent->UnregisterComponent();
+		}
 	}
 
 	return bHandled;
@@ -363,10 +340,11 @@ bool FSpawnAssetTool::StartModify()
 {
 	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::StartModify"));
 
-	// If user double clicks mouse button while in preview mode it will get a new actor.
+	// If user double clicks mouse button while in preview mode it should still regenerate the random.
 	if (PreviewActorArray.Num() > 0)
 	{
-		RefreshPlaceableAsset();
+		RegenerateRandomRotationOffset();
+		RegenerateRandomScale();
 		return true;
 	}
 
@@ -417,17 +395,45 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 	{
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting tool active"));
 		RefreshPreviewActors();
+
+		PreviousSelection.Empty();
+
+		// Store selection in case the user doesn't spawn an object we go to the previous selection.
+		if (GEditor->GetSelectedActors() != nullptr)
+		{
+			GEditor->GetSelectedActors()->GetSelectedObjects<AActor>(PreviousSelection);
+		}
+
+		// Deselect all actors.
 		GEditor->SelectNone(true, true, false);
+
+		// We have to set the tool active after doing all the selection related stuff, because selection is disabled while the tool is active.
+		IsToolActive = true;
 	}
 	else
 	{
-		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting tool inactive"));
+		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting tool inactive."));
 		DestroyPreviewActors();
+
+		// We have to deactivate the tool before we start messing with the selections, because selections are disabled while using the tool.
+		IsToolActive = false;
+
+		if (SpawnedActor != nullptr)
+		{
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Select newly spawned asset."));
+			GEditor->SelectActor(SpawnedActor, true, true, true, true);
+		}
+		else // Restore previous selection.
+		{
+			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Selecting %d previous assets."), PreviousSelection.Num());
+			for (AActor* PreviousSelectedActor : PreviousSelection)
+			{
+				GEditor->SelectActor(PreviousSelectedActor, true, true, true, true);
+			}
+		}
 
 		SpawnedActor = nullptr;
 	}
-
-	IsToolActive = IsActive;
 }
 
 void FSpawnAssetTool::SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material)
@@ -692,11 +698,11 @@ bool FSpawnAssetTool::IsAssetDataPlaceable(FAssetData AssetData)
 
 bool FSpawnAssetTool::UpdateSpawnVisualizerMaterialParameters()
 {
-	if (SpawnVisualizerMID)
+	if (SpawnedActor != nullptr && SpawnVisualizerMID != nullptr)
 	{
 		SpawnVisualizerMID->SetVectorParameterValue(FName("CursorInputDownWorldLocation"), FLinearColor(SpawnWorldTransform.GetLocation()));
 
-		FVector Extent = DefaultDesignerActorExtent * SpawnedActor->GetActorScale3D();
+		FVector Extent = DefaultSpawnedActorExtent * SpawnedActor->GetActorScale3D();
 		EAxisType PositiveAxis = DesignerSettings->GetPositiveAxisToAlignWithCursor();
 		float ActorRadius = PositiveAxis == EAxisType::Right ? Extent.Y : PositiveAxis == EAxisType::Up ? Extent.Z : Extent.X;
 		ActorRadius = FMath::Abs(ActorRadius);
@@ -817,13 +823,13 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 		EAxisType PositiveAxis = GetDesignerSettings()->GetPositiveAxisToAlignWithCursor();
 		float BoundsUsedForScale;
 		if (PositiveAxis == EAxisType::Forward)
-			BoundsUsedForScale = DefaultDesignerActorExtent.X;
+			BoundsUsedForScale = DefaultSpawnedActorExtent.X;
 		else if (PositiveAxis == EAxisType::Right)
-			BoundsUsedForScale = DefaultDesignerActorExtent.Y;
+			BoundsUsedForScale = DefaultSpawnedActorExtent.Y;
 		else if (PositiveAxis == EAxisType::Up)
-			BoundsUsedForScale = DefaultDesignerActorExtent.Z;
+			BoundsUsedForScale = DefaultSpawnedActorExtent.Z;
 		else
-			BoundsUsedForScale = FMath::Max(DefaultDesignerActorExtent.X, DefaultDesignerActorExtent.Y);
+			BoundsUsedForScale = FMath::Max(DefaultSpawnedActorExtent.X, DefaultSpawnedActorExtent.Y);
 
 		NewScale *= FVector(CursorDistance / BoundsUsedForScale);
 	}
@@ -831,7 +837,7 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 	if (NewScale.ContainsNaN())
 	{
 		NewScale = FVector::OneVector;
-		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultDesignerActorExtent.ToString());
+		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultSpawnedActorExtent.ToString());
 	}
 
 	NewSpawnedActorTransform.SetScale3D(NewScale);
@@ -895,8 +901,7 @@ FRotator FSpawnAssetTool::GetSpawnActorRotation()
 	if (MouseDirection.IsNearlyZero())
 		MouseDirection = SpawnWorldTransform.GetRotation().GetForwardVector();
 
-	//FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? SpawnWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
-	FVector ForwardVector = SpawnWorldTransform.GetRotation().GetForwardVector();
+	FVector ForwardVector = GetDesignerSettings()->AxisToAlignWithCursor == EAxisType::None ? SpawnWorldTransform.GetRotation().GetForwardVector() : MouseDirection;
 	FVector UpVector = SpawnWorldTransform.GetRotation().GetUpVector();
 
 	// if they're almost same, we need to find arbitrary vector

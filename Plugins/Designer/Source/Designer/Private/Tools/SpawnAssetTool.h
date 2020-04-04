@@ -88,7 +88,7 @@ private:
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
-	FVector DefaultDesignerActorExtent;
+	FVector DefaultSpawnedActorExtent;
 
 	/** The array of assets which is selected in the content browser and is actually placeable */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
@@ -97,6 +97,10 @@ private:
 	/** The asset which should be spawned and is currently being previewed */
 	UPROPERTY(Category = "SpawnAsset", NonTransactional)
 	FAssetData TargetAssetDataToSpawn;
+
+	UPROPERTY(Category = "SpawnAsset", NonTransactional)
+	TArray<AActor*> PreviousSelection;
+
 public:
 	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
 

@@ -119,13 +119,6 @@ class DESIGNER_API UDesignerSettings : public UObject
 	GENERATED_UCLASS_BODY()
 
 public:
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	UMaterialInterface* PreviewActorMaterial;
-
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
-	UMaterialInterface* PreviewActorPulsingMaterial;
-
-
 	/** The spawn location offset in relative space */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	FVector RelativeLocationOffset;
