@@ -166,6 +166,10 @@ public:
 	/** Scale the bounds of the mesh towards the cursor location */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
 	bool bScaleBoundsTowardsCursor;
+
+	/** The minimal scale which is applied to the mesh when spawning */
+	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	float MinimalScale;
 	
 	/** Randomly scale the mesh */
 	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)

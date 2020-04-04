@@ -39,6 +39,7 @@ UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer
 	, RandomRotationY(FRandomMinMaxFloat(0.F, 360.F))
 	, RandomRotationZ(FRandomMinMaxFloat(0.F, 360.F))
 	, bScaleBoundsTowardsCursor(true)
+    , MinimalScale(0.3F)
 	, bApplyRandomScale(false)
 	, RandomScaleX(FRandomMinMaxFloat(0.8F, 1.2F, true))
 	, RandomScaleY(FRandomMinMaxFloat(0.8F, 1.2F, true))

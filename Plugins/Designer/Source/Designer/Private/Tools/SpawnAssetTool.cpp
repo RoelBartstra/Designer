@@ -305,17 +305,11 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Free spawned actor"));
 		bHandled = true;
 
+		// Regenerate random data for next actor but only if the current actor has actually been spawned.
 		if (ControlledSpawnedActor != nullptr)
 		{
-			// Regenerate random data for next actor if the current one is spawned.
 			RegenerateRandomRotationOffset();
 			RegenerateRandomScale();
-
-			if (FMath::IsNearlyZero(ControlledSpawnedActor->GetActorScale3D().Size()))
-			{
-				ControlledSpawnedActor->Destroy(false, false);
-				GEditor->RedrawLevelEditingViewports();
-			}
 		}
 
 		DefaultSpawnedActorExtent = FVector::ZeroVector;
@@ -855,6 +849,8 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 		NewScale = FVector::OneVector;
 		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultSpawnedActorExtent.ToString());
 	}
+
+	NewScale = NewScale.ComponentMax(FVector(GetDesignerSettings()->MinimalScale));
 
 	NewSpawnedActorTransform.SetScale3D(NewScale);
 
