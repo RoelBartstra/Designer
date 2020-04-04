@@ -51,27 +51,30 @@ FSpawnAssetTool::FSpawnAssetTool(UDesignerSettings* DesignerSettings)
 {
 	this->DesignerSettings = DesignerSettings;
 
-	UStaticMesh* StaticMesh = nullptr;
+	UStaticMesh* PlaneStaticMesh = nullptr;
+
 	if (!IsRunningCommandlet())
 	{
-		UMaterialInterface* SpawnVisualizerMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Designer/MI_SpawnVisualizer.MI_SpawnVisualizer"), nullptr, LOAD_None, nullptr);
+		UMaterialInterface* SpawnVisualizerMaterial = LoadObject<UMaterialInterface>(GetDesignerSettings(), TEXT("/Designer/MI_SpawnVisualizer.MI_SpawnVisualizer"), nullptr, LOAD_None, nullptr);
 		check(SpawnVisualizerMaterial != nullptr);
-		SpawnVisualizerMID = UMaterialInstanceDynamic::Create(SpawnVisualizerMaterial, GetTransientPackage());
+
+		SpawnVisualizerMID = UMaterialInstanceDynamic::Create(SpawnVisualizerMaterial, GetDesignerSettings());
 		check(SpawnVisualizerMID != nullptr);
-		StaticMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Designer/SM_SpawnVisualizer.SM_SpawnVisualizer"), nullptr, LOAD_None, nullptr);
-		check(StaticMesh != nullptr);
-		UMaterialInterface* PreviewActorMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Designer/MI_PreviewActor.MI_PreviewActor"), nullptr, LOAD_None, nullptr);
-		PreviewActorMID = UMaterialInstanceDynamic::Create(PreviewActorMaterial, GetTransientPackage());
-		check(PreviewActorMID != nullptr);
-		UMaterialInterface* PreviewActorPulsingMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Designer/MI_PreviewActorPulsing.MI_PreviewActorPulsing"), nullptr, LOAD_None, nullptr);
-		PreviewActorPulsingMID = UMaterialInstanceDynamic::Create(PreviewActorPulsingMaterial, GetTransientPackage());
-		check(PreviewActorPulsingMID != nullptr);
+
+		PlaneStaticMesh = LoadObject<UStaticMesh>(GetDesignerSettings(), TEXT("/Designer/SM_SpawnVisualizer.SM_SpawnVisualizer"), nullptr, LOAD_None, nullptr);
+		check(PlaneStaticMesh != nullptr);
+
+		PreviewActorMaterial = LoadObject<UMaterialInterface>(GetDesignerSettings(), TEXT("/Designer/MI_PreviewActor.MI_PreviewActor"), nullptr, LOAD_None, nullptr);
+		check(PreviewActorMaterial != nullptr);
+
+		PreviewActorPulsingMaterial = LoadObject<UMaterialInterface>(GetDesignerSettings(), TEXT("/Designer/MI_PreviewActorPulsing.MI_PreviewActorPulsing"), nullptr, LOAD_None, nullptr);
+		check(PreviewActorPulsingMaterial != nullptr);
 	}
 
 	SpawnPlaneComponent = NewObject<UStaticMeshComponent>(GetTransientPackage(), TEXT("SpawnVisualizerComponent"));
 	SpawnPlaneComponent->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
 	SpawnPlaneComponent->SetCollisionObjectType(ECC_WorldDynamic);
-	SpawnPlaneComponent->SetStaticMesh(StaticMesh);
+	SpawnPlaneComponent->SetStaticMesh(PlaneStaticMesh);
 	SpawnPlaneComponent->SetMaterial(0, SpawnVisualizerMID);
 	SpawnPlaneComponent->SetAbsolute(true, true, true);
 	SpawnPlaneComponent->CastShadow = false;
@@ -224,6 +227,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			bHandled = true;
 
 			ViewportClient->RemoveRealtimeOverride();
+			GEditor->RedrawAllViewports(false);
 
 			SetToolActive(false);
 		}
@@ -247,7 +251,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 			UpdateSpawnedActorTransform();
 		}
 
-		// Instaly update the material else it might be out of date when the object is rescaled.
+		// Instantly update the material else it might be out of date when the object is rescaled.
 		UpdateSpawnVisualizerMaterialParameters();
 
 		bHandled = true;
@@ -454,15 +458,18 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 
 void FSpawnAssetTool::SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material)
 {
-	if (IsValid(Actor) && IsValid(Material))
+	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting material: %s"), *Material->GetName());
+
+	if (Actor != nullptr && Material != nullptr)
 	{
 		TArray<UPrimitiveComponent*> PrimitiveComponentArray;
 		Actor->GetComponents<UPrimitiveComponent>(PrimitiveComponentArray, true);
 		for (UPrimitiveComponent* PrimitiveComponent : PrimitiveComponentArray)
 		{
-			if (IsValid(PrimitiveComponent))
+			if (PrimitiveComponent != nullptr)
 			{
-				for (int32 MaterialIndex = 0; MaterialIndex < PrimitiveComponent->GetNumMaterials(); MaterialIndex++)
+				int32 MaterialCount = PrimitiveComponent->GetNumMaterials();
+				for (int32 MaterialIndex = 0; MaterialIndex < MaterialCount; MaterialIndex++)
 				{
 					PrimitiveComponent->SetMaterial(MaterialIndex, Material);
 				}
@@ -485,7 +492,7 @@ void FSpawnAssetTool::RefreshPreviewActors()
 		{
 			PreviewActorArray.Add(PreviewActor);
 			PreviewActor->SetActorLabel("DesignerPreviewActor");
-			//SetAllMaterialsForActor(PreviewActor, PreviewActorMID);
+			SetAllMaterialsForActor(PreviewActor, PreviewActorMaterial);
 		}
 
 		PreviewActorPulsing = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
@@ -494,7 +501,7 @@ void FSpawnAssetTool::RefreshPreviewActors()
 		{
 			PreviewActorArray.Add(PreviewActorPulsing);
 			PreviewActorPulsing->SetActorLabel("DesignerPreviewActorPulsing");
-			//SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMID);
+			SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMaterial);
 		}
 
 	}
