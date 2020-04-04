@@ -27,6 +27,7 @@
 #include "CoreMinimal.h"
 
 #include "IDetailCustomization.h"
+#include "DetailCategoryBuilder.h"
 #include "IDetailRootObjectCustomization.h"
 
 class IPropertyHandle;
@@ -53,5 +54,34 @@ public:
 
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
+
+    void BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle);
+    
 	void OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder);
+
+    template<typename type>
+    static TOptional<type> GetOptionalPropertyValue(TSharedRef<IPropertyHandle> PropertyHandle);
+
+    template<typename type>
+    static void SetPropertyValue(type NewValue, ETextCommit::Type CommitInfo, TSharedRef<IPropertyHandle> PropertyHandle);
 };
+
+template<typename type>
+TOptional<type> FDesignerSettingsCustomization::GetOptionalPropertyValue(TSharedRef<IPropertyHandle> PropertyHandle)
+{
+    type Value;
+    if (PropertyHandle->GetValue(Value) == FPropertyAccess::Success)
+    {
+        return Value;
+    }
+
+    // Couldn't get, return unset optional
+    return TOptional<type>();
+}
+
+template<typename type>
+void FDesignerSettingsCustomization::SetPropertyValue(type NewValue, ETextCommit::Type CommitInfo, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+    ensure(PropertyHandle->SetValue(NewValue) == FPropertyAccess::Success);
+}
+

@@ -120,67 +120,71 @@ class DESIGNER_API UDesignerSettings : public UObject
 
 public:
 	/** The spawn location offset in relative space */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	FVector RelativeLocationOffset;
 
 	/** The spawn rotation offset in world space */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	FVector WorldLocationOffset;
 
 	/** Actor axis vector to align with the hit surface direction */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	EAxisType AxisToAlignWithNormal;
 
 	/** Actor axis vector to align with the cursor direction */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	EAxisType AxisToAlignWithCursor;
 
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bSnapToGridRotationX;
 
 	/** Is the rotation y axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bSnapToGridRotationY;
 
 	/** Is the rotation z axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bSnapToGridRotationZ;
 	
 	/** Randomly rotates the mesh */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bApplyRandomRotation;
 	
 	/** Random rotation offset applied to the x axis rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
 	FRandomMinMaxFloat RandomRotationX;
 
 	/** Random rotation offset applied to the y axis rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
 	FRandomMinMaxFloat RandomRotationY;
 
 	/** Random rotation offset applied to z axis the rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
 	FRandomMinMaxFloat RandomRotationZ;
 
 	/** Scale the bounds of the mesh towards the cursor location */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bScaleBoundsTowardsCursor;
+
+	/** The minimal scale which is applied to the mesh when spawning */
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (UIMin = "0.1", UIMax = "1.0", ClampMin = "0.01", ClampMax = "100.0"))
+	float MinimalScale;
 	
 	/** Randomly scale the mesh */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere)
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	bool bApplyRandomScale;
 
 	/** Random scale for x axis */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxFloat RandomScaleX;
 
 	/** Random scale for y axis */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxFloat RandomScaleY;
 
 	/** Random scale for z axis */
-	UPROPERTY(Category = "SpawnSettings", NonTransactional, EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxFloat RandomScaleZ;
 
 	/**

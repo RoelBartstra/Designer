@@ -39,29 +39,71 @@ class UStaticMeshComponent;
 class FSpawnAssetTool : public FDesignerTool
 {
 private:
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	TArray<AActor*> PreviewActorArray;
+
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	AActor* PreviewActor;
+
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	AActor* PreviewActorPulsing;
+
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	UMaterialInterface* PreviewActorMaterial;
+
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	UMaterialInterface* PreviewActorPulsingMaterial;
+
 	/** The static mesh of the Spawn visualizer component */
-	UStaticMeshComponent* SpawnVisualizerComponent;
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	UStaticMeshComponent* SpawnPlaneComponent;
 
 	/** The material instance dynamic of the Spawn visualizer component */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
 	UMaterialInstanceDynamic* SpawnVisualizerMID;
 
 	/** The plane we trace against when transforming the placed actor */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
 	FPlane SpawnTracePlane;
 
 	/** The world transform stored on mouse click down */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
 	FTransform SpawnWorldTransform;
 
 	/** When spawning an object the mouse traces with a plane to determine the size and rotation. This is the world space hit location on that plane */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
 	FVector CursorPlaneIntersectionWorldLocation;
 
 	/** The settings available to the user */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
 	UDesignerSettings* DesignerSettings;
 
 	/** The actor currently controlled by the designer editor mode */
-	AActor* SpawnedActor;
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	AActor* SpawnedActorPreview;
+
+	/** The actor currently controlled by the designer editor mode */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	AActor* ControlledSpawnedActor;
+
+	/** The last spawned actor released by the tool, so not in control anymore */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	AActor* ReleasedSpawnedActor;
 
 	/** The local box extent of the selected designer actor in cm when scale is uniform 1 */
-	FVector DefaultDesignerActorExtent;
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	FVector DefaultSpawnedActorExtent;
+
+	/** The array of assets which is selected in the content browser and is actually placeable */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	TArray<FAssetData> PlaceableSelectedAssets;
+
+	/** The asset which should be spawned and is currently being previewed */
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	FAssetData TargetAssetDataToSpawn;
+
+	UPROPERTY(Category = "SpawnAsset", Transient, NonTransactional)
+	TArray<AActor*> PreviousSelection;
 
 public:
 	FSpawnAssetTool(UDesignerSettings* DesignerSettings);
@@ -151,9 +193,28 @@ public:
 	FORCEINLINE UDesignerSettings* GetDesignerSettings() const { return DesignerSettings; }
 
 	/** The actor currently controlled by the designer editor mode */
-	FORCEINLINE AActor* GetControlledActor() const { return SpawnedActor; }
+	FORCEINLINE AActor* GetControlledActor() const { return ControlledSpawnedActor; }
 
 private:
+	virtual void SetToolActive(bool IsActive) override;
+
+	void SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material);
+
+	/** Create all preview actors */
+	void RefreshPreviewActors();
+
+	/** Destroy all preview actors */
+	void DestroyPreviewActors();
+
+	/** Non transactional version of UEditorEngine::UseActorFactory */
+	AActor* SpawnPreviewActorFromFactory(UActorFactory* Factory, const FAssetData& AssetData, const FTransform* InActorTransform, EObjectFlags InObjectFlags);
+
+	/** Clears the PlaceableSelectedAssets array and fills it again with the placeable assets currently selected in the content browser */
+	void RefreshPlaceableAsset();
+
+	/** Helper function to see if asset data can be placed in the world */
+	bool IsAssetDataPlaceable(FAssetData AssetData);
+
 	/** Update the material parameters for the spawn visualizer component. Returns true if it was successful */
 	bool UpdateSpawnVisualizerMaterialParameters();
 
@@ -163,8 +224,11 @@ private:
 	/** Recalculate the world transform of the mouse and store it in the CurrentMouseWorldTransform. Returns true if it was successful */
 	void RecalculateMousePlaneIntersectionWorldLocation(FEditorViewportClient* ViewportClient, FViewport* Viewport);
 
-	/** Updates the designer actor transform so it matches with all the changes made to DesignerActorTransformExcludingOffset */
-	void UpdateDesignerActorTransform();
+	/** Update the preview actors transform */
+	void UpdatePreviewActorTransform();
+
+	/** Updates the spawned actor transform */
+	void UpdateSpawnedActorTransform();
 
 	/** Generate new random rotation offset */
 	void RegenerateRandomRotationOffset();
@@ -176,8 +240,8 @@ private:
 	void RegenerateRandomScale();
 
 	/** The random scale applied to the designer actor */
-	FVector GetRandomScale() const;
+	FVector GetSpawnActorScale() const;
 
 	/** Get the designer actor rotation with all settings applied to it */
-	FRotator GetDesignerActorRotation();
+	FRotator GetSpawnActorRotation();
 };

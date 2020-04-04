@@ -29,7 +29,6 @@
 #include "DesignerSettings.h"
 
 #include "DetailLayoutBuilder.h"
-#include "DetailCategoryBuilder.h"
 #include "PropertyCustomizationHelpers.h"
 #include "Widgets/Input/SVectorInputBox.h"
 #include "PropertyHandle.h"
@@ -46,46 +45,35 @@ TSharedRef<IDetailCustomization> FDesignerSettingsCustomization::MakeInstance()
 void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {	
 	FDesignerEdMode* DesignerEdMode = (FDesignerEdMode*)GLevelEditorModeTools().GetActiveMode(FDesignerEdMode::EM_DesignerEdModeId);
-
+	UDesignerSettings* DesignerSettings = DesignerEdMode->GetDesignerSettings();
 	IDetailCategoryBuilder& SpawnSettingsCategory = DetailBuilder.EditCategory("SpawnSettings");
 
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset));
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_X = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("X").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Y = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Y").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetRelative_Z = PropertyHandle_SpawnLocationOffsetRelative->GetChildHandle("Z").ToSharedRef();
-	
-	SpawnSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetRelative)
-	.CustomWidget()
-	.NameContent()
-	[
-		PropertyHandle_SpawnLocationOffsetRelative->CreatePropertyNameWidget()
-	]
-	.ValueContent()
-	.MinDesiredWidth(125.0f * 3.0f) // copied from FComponentTransformDetails
-	.MaxDesiredWidth(125.0f * 3.0f)
-	[
-		SNew(SVectorInputBox)
-		.bColorAxisLabels(true)
-		.AllowSpin(false)
-		.Font(DetailBuilder.GetDetailFont())
-		.X_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.X; })
-		.Y_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Y; })
-		.Z_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Z; })
-		.OnXChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.X = Value; })
-		.OnYChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Y = Value; })
-		.OnZChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->RelativeLocationOffset.Z = Value; })
-	];
+	// Create relative location offset widget.
+	BuildLocationPropertyWidget(DetailBuilder, SpawnSettingsCategory, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
 
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset));
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_X = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("X").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Y = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Y").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_SpawnLocationOffsetWorld_Z = PropertyHandle_SpawnLocationOffsetWorld->GetChildHandle("Z").ToSharedRef();
+	// Create world location offset widget.
+	BuildLocationPropertyWidget(DetailBuilder, SpawnSettingsCategory, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
+}
 
-	SpawnSettingsCategory.AddProperty(PropertyHandle_SpawnLocationOffsetWorld)
+void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle)
+{
+	//TSharedRef<IPropertyHandle> PropertyHandle_Location = DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset));
+	TSharedRef<IPropertyHandle> PropertyHandle_Location_X = PropertyHandle->GetChildHandle("X").ToSharedRef();
+	TSharedRef<IPropertyHandle> PropertyHandle_Location_Y = PropertyHandle->GetChildHandle("Y").ToSharedRef();
+	TSharedRef<IPropertyHandle> PropertyHandle_Location_Z = PropertyHandle->GetChildHandle("Z").ToSharedRef();
+
+	float Value_X;
+	PropertyHandle_Location_X->GetValue(Value_X);
+	float Value_Y;
+	PropertyHandle_Location_Y->GetValue(Value_Y);
+	float Value_Z;
+	PropertyHandle_Location_Z->GetValue(Value_Z);
+
+	Category.AddProperty(PropertyHandle)
 		.CustomWidget()
 		.NameContent()
 		[
-			PropertyHandle_SpawnLocationOffsetWorld->CreatePropertyNameWidget()
+			PropertyHandle->CreatePropertyNameWidget()
 		]
 	.ValueContent()
 		.MinDesiredWidth(125.0f * 3.0f) // copied from FComponentTransformDetails
@@ -95,13 +83,18 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 			.bColorAxisLabels(true)
 			.AllowSpin(false)
 			.Font(DetailBuilder.GetDetailFont())
-			.X_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.X; })
-			.Y_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Y; })
-			.Z_Lambda([=]() -> float { return DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Z; })
-			.OnXChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.X = Value; })
-			.OnYChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Y = Value; })
-			.OnZChanged_Lambda([=](float Value) { DesignerEdMode->GetDesignerSettings()->WorldLocationOffset.Z = Value; })
+			.X_Static(&GetOptionalPropertyValue<float>, PropertyHandle_Location_X)
+			.Y_Static(&GetOptionalPropertyValue<float>, PropertyHandle_Location_Y)
+			.Z_Static(&GetOptionalPropertyValue<float>, PropertyHandle_Location_Z)
+			.OnXCommitted_Static(&SetPropertyValue<float>, PropertyHandle_Location_X)
+			.OnYCommitted_Static(&SetPropertyValue<float>, PropertyHandle_Location_Y)
+			.OnZCommitted_Static(&SetPropertyValue<float>, PropertyHandle_Location_Z)
+			.OnXChanged_Lambda([=](float NewValue) { ensure(PropertyHandle_Location_X->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange) == FPropertyAccess::Success); })
+			.OnYChanged_Lambda([=](float NewValue) { ensure(PropertyHandle_Location_Y->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange) == FPropertyAccess::Success); })
+			.OnZChanged_Lambda([=](float NewValue) { ensure(PropertyHandle_Location_Z->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange) == FPropertyAccess::Success); })
+			.AllowSpin(true)
 		];
+
 }
 
 void FDesignerSettingsCustomization::OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder)
