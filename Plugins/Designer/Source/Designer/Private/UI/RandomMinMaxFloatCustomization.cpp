@@ -88,7 +88,7 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 				.VAlign(VAlign_Center)
 				.AutoWidth()
 				[
-					PropertyHandle_RandomlyNegate->CreatePropertyNameWidget()
+					PropertyHandle_RandomlyNegate->CreatePropertyNameWidget(FText::FromString("Can Negate"))
 				]
 				+ SHorizontalBox::Slot()
 				.VAlign(VAlign_Center)
