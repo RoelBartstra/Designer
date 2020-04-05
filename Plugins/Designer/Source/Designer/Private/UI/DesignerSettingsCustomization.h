@@ -55,7 +55,7 @@ public:
 	/** IDetailCustomization interface */
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
-    void BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle);
+    void BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailGroup& Group, TSharedRef<IPropertyHandle> PropertyHandle);
     
 	void OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder);
 

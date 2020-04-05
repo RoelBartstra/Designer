@@ -77,7 +77,7 @@ struct FRandomMinMaxFloat
 	 * i.e. if Min = 30 and Max = 30 the outcome can be either 30 or -30 when this is set to true
 	 */
 	UPROPERTY(Category = "Random", EditAnywhere)
-	bool bRandomlyNegateValue;
+	bool bRandomlyNegate;
 
 private:
 	/** The randomly generated value */
@@ -89,7 +89,7 @@ public:
 	{
 		this->Min = 0.F;
 		this->Max = 1.F;
-		this->bRandomlyNegateValue = false;
+		this->bRandomlyNegate = false;
 
 		RegenerateRandomValue();
 	}
@@ -98,7 +98,7 @@ public:
 	{
 		this->Min = Min;
 		this->Max = Max;
-		this->bRandomlyNegateValue = bRandomlyNegateValue;
+		this->bRandomlyNegate = bRandomlyNegateValue;
 
 		RegenerateRandomValue();
 	}
@@ -107,7 +107,95 @@ public:
 	FORCEINLINE float GetCurrentRandomValue() { return RandomValue; }
 
 	/** Regenerates the random value and returns it. The value can also be retrieved later as well using GetCurrentRandomValue */
-	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomlyNegateValue ? -1.F : 1.F); }
+	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomlyNegate ? -1.F : 1.F); }
+};
+
+/**
+ * A random vector within a min max range per component
+ * Option for randomly negating the value per component
+ */
+USTRUCT(BlueprintType)
+struct FRandomMinMaxVector
+{
+	GENERATED_BODY()
+
+	/** X value */
+	UPROPERTY(Category = "Random", EditAnywhere)
+	FRandomMinMaxFloat X;
+
+	/** Y value */
+	UPROPERTY(Category = "Random", EditAnywhere)
+	FRandomMinMaxFloat Y;
+
+	/** Z value */
+	UPROPERTY(Category = "Random", EditAnywhere)
+	FRandomMinMaxFloat Z;
+
+public:
+	FRandomMinMaxVector()
+	{
+		this->X = FRandomMinMaxFloat();
+		this->Y = FRandomMinMaxFloat();
+		this->Z = FRandomMinMaxFloat();
+
+		RegenerateRandomValue();
+	}
+
+	FRandomMinMaxVector(FRandomMinMaxFloat X, FRandomMinMaxFloat Y, FRandomMinMaxFloat Z)
+	{
+		this->X = FRandomMinMaxFloat(X);
+		this->Y = FRandomMinMaxFloat(Y);
+		this->Z = FRandomMinMaxFloat(Z);
+
+		RegenerateRandomValue();
+	}
+
+	/** Get the random value currently stored in this struct */
+	FORCEINLINE FVector GetCurrentRandomValue() { return FVector(X.GetCurrentRandomValue(), Y.GetCurrentRandomValue(), Z.GetCurrentRandomValue()); }
+
+	/** Regenerates the random value and returns it. The value can also be retrieved later as well using GetCurrentRandomValue */
+	FORCEINLINE void RegenerateRandomValue()
+	{
+		X.RegenerateRandomValue();
+		Y.RegenerateRandomValue();
+		Z.RegenerateRandomValue();
+	}
+};
+
+/**
+ * XYZ booleans.
+ */
+USTRUCT(BlueprintType)
+struct FBool3
+{
+	GENERATED_BODY()
+
+	/** X value */
+	UPROPERTY(Category = "Bool3", EditAnywhere)
+	bool X;
+
+	/** Y value */
+	UPROPERTY(Category = "Bool3", EditAnywhere)
+	bool Y;
+
+	/** Z value */
+	UPROPERTY(Category = "Bool3", EditAnywhere)
+	bool Z;
+
+public:
+	FBool3()
+	{
+		this->X = false;
+		this->Y = false;
+		this->Z = false;
+	}
+
+	FBool3(bool X, bool Y, bool Z)
+	{
+		this->X = X;
+		this->Y = Y;
+		this->Z = Z;
+	}
 };
 
 /**
@@ -137,15 +225,7 @@ public:
 
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	bool bSnapToGridRotationX;
-
-	/** Is the rotation y axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	bool bSnapToGridRotationY;
-
-	/** Is the rotation z axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	bool bSnapToGridRotationZ;
+	FBool3 SnapRotationToGrid;
 	
 	/** Randomly rotates the mesh */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
@@ -153,15 +233,7 @@ public:
 	
 	/** Random rotation offset applied to the x axis rotation matrix on spawn */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FRandomMinMaxFloat RandomRotationX;
-
-	/** Random rotation offset applied to the y axis rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FRandomMinMaxFloat RandomRotationY;
-
-	/** Random rotation offset applied to z axis the rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
-	FRandomMinMaxFloat RandomRotationZ;
+	FRandomMinMaxVector RandomRotation;
 
 	/** Scale the bounds of the mesh towards the cursor location */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
@@ -177,15 +249,7 @@ public:
 
 	/** Random scale for x axis */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
-	FRandomMinMaxFloat RandomScaleX;
-
-	/** Random scale for y axis */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
-	FRandomMinMaxFloat RandomScaleY;
-
-	/** Random scale for z axis */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
-	FRandomMinMaxFloat RandomScaleZ;
+	FRandomMinMaxVector RandomScale;
 
 	/**
 	 * Always returns the positive axis of the current selected AxisToAlignWithCursor

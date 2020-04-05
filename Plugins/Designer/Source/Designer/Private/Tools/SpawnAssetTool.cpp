@@ -767,9 +767,9 @@ bool FSpawnAssetTool::RecalculateSpawnTransform(FEditorViewportClient* ViewportC
 
 	FRotator SpawnRotationSnapped = CursorWorldRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	CursorWorldRotation.Roll = GetDesignerSettings()->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : CursorWorldRotation.Roll;
-	CursorWorldRotation.Pitch = GetDesignerSettings()->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : CursorWorldRotation.Pitch;
-	CursorWorldRotation.Yaw = GetDesignerSettings()->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : CursorWorldRotation.Yaw;
+	CursorWorldRotation.Roll = GetDesignerSettings()->SnapRotationToGrid.X ? SpawnRotationSnapped.Roll : CursorWorldRotation.Roll;
+	CursorWorldRotation.Pitch = GetDesignerSettings()->SnapRotationToGrid.Y ? SpawnRotationSnapped.Pitch : CursorWorldRotation.Pitch;
+	CursorWorldRotation.Yaw = GetDesignerSettings()->SnapRotationToGrid.Z ? SpawnRotationSnapped.Yaw : CursorWorldRotation.Yaw;
 	NewSpawnTransform.SetRotation(CursorWorldRotation.Quaternion());
 
 	SpawnWorldTransform = NewSpawnTransform;
@@ -873,36 +873,28 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 
 void FSpawnAssetTool::RegenerateRandomRotationOffset()
 {
-	GetDesignerSettings()->RandomRotationX.RegenerateRandomValue();
-	GetDesignerSettings()->RandomRotationY.RegenerateRandomValue();
-	GetDesignerSettings()->RandomRotationZ.RegenerateRandomValue();
+	GetDesignerSettings()->RandomRotation.RegenerateRandomValue();
 }
 
 FRotator FSpawnAssetTool::GetRandomRotationOffset() const
 {
 	return FRotator( // Pitch, Yaw, Roll = Y, Z, X.
-		GetDesignerSettings()->RandomRotationY.GetCurrentRandomValue(),
-		GetDesignerSettings()->RandomRotationZ.GetCurrentRandomValue(),
-		GetDesignerSettings()->RandomRotationX.GetCurrentRandomValue()
+		GetDesignerSettings()->RandomRotation.Y.GetCurrentRandomValue(),
+		GetDesignerSettings()->RandomRotation.Z.GetCurrentRandomValue(),
+		GetDesignerSettings()->RandomRotation.X.GetCurrentRandomValue()
 	);
 }
 
 void FSpawnAssetTool::RegenerateRandomScale()
 {
-	GetDesignerSettings()->RandomScaleX.RegenerateRandomValue();
-	GetDesignerSettings()->RandomScaleY.RegenerateRandomValue();
-	GetDesignerSettings()->RandomScaleZ.RegenerateRandomValue();
+	GetDesignerSettings()->RandomScale.RegenerateRandomValue();
 }
 
 FVector FSpawnAssetTool::GetSpawnActorScale() const
 {
 	if (GetDesignerSettings()->bApplyRandomScale)
 	{
-		return FVector(
-			GetDesignerSettings()->RandomScaleX.GetCurrentRandomValue(),
-			GetDesignerSettings()->RandomScaleY.GetCurrentRandomValue(),
-			GetDesignerSettings()->RandomScaleZ.GetCurrentRandomValue()
-		);
+		return GetDesignerSettings()->RandomScale.GetCurrentRandomValue();
 	}
 	else
 	{
@@ -1015,9 +1007,9 @@ FRotator FSpawnAssetTool::GetSpawnActorRotation()
 	// Snap the axes to the grid if the user has set bSnapToGridRotation
 	FRotator SpawnRotationSnapped = DesignerActorRotation;
 	FSnappingUtils::SnapRotatorToGrid(SpawnRotationSnapped);
-	DesignerActorRotation.Roll = GetDesignerSettings()->bSnapToGridRotationX ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
-	DesignerActorRotation.Pitch = GetDesignerSettings()->bSnapToGridRotationY ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
-	DesignerActorRotation.Yaw = GetDesignerSettings()->bSnapToGridRotationZ ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
+	DesignerActorRotation.Roll = GetDesignerSettings()->SnapRotationToGrid.X ? SpawnRotationSnapped.Roll : DesignerActorRotation.Roll;
+	DesignerActorRotation.Pitch = GetDesignerSettings()->SnapRotationToGrid.Y ? SpawnRotationSnapped.Pitch : DesignerActorRotation.Pitch;
+	DesignerActorRotation.Yaw = GetDesignerSettings()->SnapRotationToGrid.Z ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 
 	return DesignerActorRotation;
 }
