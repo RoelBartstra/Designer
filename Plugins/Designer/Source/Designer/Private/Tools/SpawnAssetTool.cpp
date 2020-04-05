@@ -201,7 +201,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
 	bool bHandled = false;
 
-	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
+	if (Key == EKeys::LeftAlt || Key == EKeys::RightAlt)
 	{
 		if (Event == IE_Pressed && !IsToolActive)
 		{
