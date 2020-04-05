@@ -22,9 +22,9 @@ void FBool3Customization::CustomizeChildren(TSharedRef<class IPropertyHandle> Pr
 		const TSharedRef<IPropertyHandle> PropertyHandle_X = PropertyHandle->GetChildHandle("X").ToSharedRef();
 		const TSharedRef<IPropertyHandle> PropertyHandle_Y = PropertyHandle->GetChildHandle("Y").ToSharedRef();
 		const TSharedRef<IPropertyHandle> PropertyHandle_Z = PropertyHandle->GetChildHandle("Z").ToSharedRef();
-
-		float LabelPadding = 2.0f;
-		float ComponentPadding = 12.0f;
+		
+		float LabelPadding = 4.0f;
+		float ComponentPadding = 8.0f;
 
 		DetailChildrenBuilder.AddProperty(PropertyHandle)
 		.CustomWidget()

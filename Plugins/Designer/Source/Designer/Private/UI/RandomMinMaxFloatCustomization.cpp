@@ -25,7 +25,7 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 		TSharedRef<IPropertyHandle> PropertyHandle_RandomlyNegate = PropertyHandle->GetChildHandle("bRandomlyNegate").ToSharedRef();
 
 		float LabelPadding = 4.0f;
-		float ComponentPadding = 12.0f;
+		float ComponentPadding = 8.0f;
 
 		float ValueMin;
 		PropertyHandle_Min->GetValue(ValueMin);
@@ -85,7 +85,7 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 			[
 				SNew(SHorizontalBox)
 				+ SHorizontalBox::Slot()
-				.VAlign( VAlign_Center )
+				.VAlign(VAlign_Center)
 				.AutoWidth()
 				[
 					PropertyHandle_RandomlyNegate->CreatePropertyNameWidget()

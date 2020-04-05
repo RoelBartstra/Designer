@@ -52,14 +52,27 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	UDesignerSettings* DesignerSettings = DesignerEdMode->GetDesignerSettings();
 	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("SpawnSettings");
 
-	//// Create RelativeLocationOffset widget.
-	BuildLocationPropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
+	IDetailGroup& LocationOffsetsGroup = Category.AddGroup("LocationOffsetsGroup", LOCTEXT("LocationOffsets", "Location Offsets"), false, true);	
+	BuildLocationPropertyWidget(DetailBuilder, LocationOffsetsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
+	BuildLocationPropertyWidget(DetailBuilder, LocationOffsetsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
 
-	//// Create WorldLocationOffset widget.
-	BuildLocationPropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
+	IDetailGroup& AxisAlignmentGroup = Category.AddGroup("AxisAlignmentGroup", LOCTEXT("AxisAlignment", "Axis Alignment"), false, true);
+	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithNormal)));
+	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));
+
+	IDetailGroup& RotationSettingsGroup = Category.AddGroup("RotationSettingsGroup", LOCTEXT("RotationSettings", "Rotation Settings"), false, true);
+	RotationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SnapRotationToGrid)));
+	RotationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bApplyRandomRotation)));
+	RotationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RandomRotation)));
+
+	IDetailGroup& ScaleSettingsGroup = Category.AddGroup("ScaleSettingsGroup", LOCTEXT("ScaleSettings", "Scale Settings"), false, true);
+	ScaleSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bScaleBoundsTowardsCursor)));
+	ScaleSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, MinimalScale)));
+	ScaleSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bApplyRandomScale)));
+	ScaleSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RandomScale)));
 }
 
-void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle)
+void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailGroup& Group, TSharedRef<IPropertyHandle> PropertyHandle)
 {
 	TSharedRef<IPropertyHandle> PropertyHandle_Location_X = PropertyHandle->GetChildHandle("X").ToSharedRef();
 	TSharedRef<IPropertyHandle> PropertyHandle_Location_Y = PropertyHandle->GetChildHandle("Y").ToSharedRef();
@@ -72,7 +85,7 @@ void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBu
 	float Value_Z;
 	PropertyHandle_Location_Z->GetValue(Value_Z);
 
-	Category.AddProperty(PropertyHandle)
+	Group.AddPropertyRow(PropertyHandle)
 	.CustomWidget()
 	.NameContent()
 	[
