@@ -28,7 +28,6 @@
 #include "DesignerSlateStyle.h"
 #include "UI/DesignerSettingsCustomization.h"
 #include "UI/Bool3Customization.h"
-#include "UI/RandomMinMaxVectorCustomization.h"
 #include "UI/RandomMinMaxFloatCustomization.h"
 
 #include "PropertyEditorModule.h"
@@ -50,7 +49,6 @@ void FDesignerModule::StartupModule()
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 	PropertyModule.RegisterCustomPropertyTypeLayout("Bool3", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FBool3Customization::MakeInstance));
 	PropertyModule.RegisterCustomPropertyTypeLayout("RandomMinMaxFloat", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FRandomMinMaxFloatCustomization::MakeInstance));
-	//PropertyModule.RegisterCustomPropertyTypeLayout("RandomMinMaxVector", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FRandomMinMaxVectorCustomization::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("DesignerSettings", FOnGetDetailCustomizationInstance::CreateStatic(&FDesignerSettingsCustomization::MakeInstance));
 }
 

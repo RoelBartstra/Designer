@@ -37,7 +37,6 @@
 #include "Fonts/SlateFontInfo.h"
 
 #include "EditorModeManager.h"
-#include <SNumericEntryBox.h>
 
 #define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 

@@ -1,7 +1,7 @@
 #include "Bool3Customization.h"
-#include <DetailLayoutBuilder.h>
-#include <DetailWidgetRow.h>
-#include <IDetailChildrenBuilder.h>
+#include "DetailLayoutBuilder.h"
+#include "DetailWidgetRow.h"
+#include "IDetailChildrenBuilder.h"
 
 #define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 

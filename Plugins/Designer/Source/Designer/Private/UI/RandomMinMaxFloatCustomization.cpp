@@ -1,8 +1,7 @@
 #include "RandomMinMaxFloatCustomization.h"
-#include <DetailLayoutBuilder.h>
-#include <DetailWidgetRow.h>
-#include <IDetailChildrenBuilder.h>
-#include <SNumericEntryBox.h>
+#include "DetailLayoutBuilder.h"
+#include "DetailWidgetRow.h"
+#include "IDetailChildrenBuilder.h"
 
 #define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
