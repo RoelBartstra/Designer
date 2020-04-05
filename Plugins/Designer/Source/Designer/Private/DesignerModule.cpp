@@ -26,11 +26,12 @@
 #include "DesignerEdMode.h"
 
 #include "DesignerSlateStyle.h"
-#include "DesignerSettingsCustomization.h"
+#include "UI/DesignerSettingsCustomization.h"
+#include "UI/Bool3Customization.h"
 
 #include "PropertyEditorModule.h"
 
-#define LOCTEXT_NAMESPACE "FDesignerModule"
+#define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
 DEFINE_LOG_CATEGORY(LogDesigner);
 
@@ -45,6 +46,7 @@ void FDesignerModule::StartupModule()
 
 	/** Register detail/property customization */
 	FPropertyEditorModule& PropertyModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
+	PropertyModule.RegisterCustomPropertyTypeLayout("Bool3", FOnGetPropertyTypeCustomizationInstance::CreateStatic(&FBool3Customization::MakeInstance));
 	PropertyModule.RegisterCustomClassLayout("DesignerSettings", FOnGetDetailCustomizationInstance::CreateStatic(&FDesignerSettingsCustomization::MakeInstance));
 }
 

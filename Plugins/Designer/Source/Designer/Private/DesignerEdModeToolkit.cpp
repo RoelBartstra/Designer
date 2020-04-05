@@ -30,7 +30,7 @@
 #include "EditorModeManager.h"
 #include "SDesignerSettings.h"
 
-#define LOCTEXT_NAMESPACE "FDesignerEdModeToolkit"
+#define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
 FDesignerEdModeToolkit::FDesignerEdModeToolkit()
 {

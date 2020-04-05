@@ -27,7 +27,7 @@
 #include "DesignerModule.h"
 #include "DesignerEdMode.h"
 #include "DesignerSettings.h"
-#include "DesignerSettingsCustomization.h"
+#include "UI/DesignerSettingsCustomization.h"
 
 #include "EditorModeManager.h"
 #include "EditorModes.h"
@@ -40,7 +40,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-#define LOCTEXT_NAMESPACE "DesignerEdMode"
+#define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesignerEdModeToolkit> InParentToolkit)

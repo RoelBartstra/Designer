@@ -22,21 +22,27 @@
  * SOFTWARE.
  */
 
-#include "DesignerSettings.h"
-#include "DesignerEdMode.h"
+#pragma once
 
-UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer)
-	, RelativeLocationOffset(FVector::ZeroVector)
-	, WorldLocationOffset(FVector::ZeroVector)
-	, AxisToAlignWithNormal(EAxisType::Up)
-	, AxisToAlignWithCursor(EAxisType::Forward)
-	, SnapRotationToGrid(FBool3())
-	, bApplyRandomRotation(false)
-	, RandomRotation(FRandomMinMaxFloat(0.F, 360.F), FRandomMinMaxFloat(0.F, 360.F), FRandomMinMaxFloat(0.F, 360.F))
-	, bScaleBoundsTowardsCursor(true)
-    , MinimalScale(0.3F)
-	, bApplyRandomScale(false)
-	, RandomScale(FRandomMinMaxFloat(0.8F, 1.2F, true), FRandomMinMaxFloat(0.8F, 1.2F, true), FRandomMinMaxFloat(0.8F, 1.2F, true))
+#include "CoreMinimal.h"
+
+#include "IDetailCustomization.h"
+#include "DetailCategoryBuilder.h"
+#include "IDetailRootObjectCustomization.h"
+
+/**
+ * 
+ */
+class FBool3Customization : public IPropertyTypeCustomization
 {
-}
+public:
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
+
+	/** IPropertyTypeCustomization interface */
+	virtual void CustomizeHeader(TSharedRef<class IPropertyHandle> PropertyHandle, class FDetailWidgetRow& HeaderDetailWidgetRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<class IPropertyHandle> PropertyHandle, class IDetailChildrenBuilder& DetailChildrenBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+
+private:
+	TSharedPtr<IPropertyHandle> Bool3PropertyHandle;
+};
+
