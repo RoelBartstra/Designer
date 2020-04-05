@@ -57,25 +57,6 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 
 	//// Create WorldLocationOffset widget.
 	BuildLocationPropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
-
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithNormal)));
-
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));
-
-	// Create SnapToGridRotation widget.
-	//BuildBool3PropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SnapRotationToGrid)));
-	
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bApplyRandomRotation)));
-	//
-	//BuildRandomMinMaxVectorPropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RandomRotation)));
-	//
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bScaleBoundsTowardsCursor)));
-	//
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, MinimalScale)));
-
-	//Category.AddProperty(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bApplyRandomScale)));
-	//
-	//BuildRandomMinMaxVectorPropertyWidget(DetailBuilder, Category, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RandomScale)));
 }
 
 void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle)
@@ -115,91 +96,6 @@ void FDesignerSettingsCustomization::BuildLocationPropertyWidget(IDetailLayoutBu
 		.OnYChanged_Lambda([=](float NewValue) { ensure(PropertyHandle_Location_Y->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange) == FPropertyAccess::Success); })
 		.OnZChanged_Lambda([=](float NewValue) { ensure(PropertyHandle_Location_Z->SetValue(NewValue, EPropertyValueSetFlags::InteractiveChange) == FPropertyAccess::Success); })
 		.AllowSpin(true)
-	];
-}
-
-void FDesignerSettingsCustomization::BuildRandomMinMaxVectorPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle)
-{
-	TSharedRef<IPropertyHandle> PropertyHandle_X = PropertyHandle->GetChildHandle("X").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_X_Min = PropertyHandle_X->GetChildHandle("Min").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_X_Max = PropertyHandle_X->GetChildHandle("Max").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_X_RandomlyNegate = PropertyHandle_X->GetChildHandle("bRandomlyNegate").ToSharedRef();
-
-	TSharedRef<IPropertyHandle> PropertyHandle_Y = PropertyHandle->GetChildHandle("Y").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Y_Min = PropertyHandle_Y->GetChildHandle("Min").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Y_Max = PropertyHandle_Y->GetChildHandle("Max").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Y_RandomlyNegate = PropertyHandle_Y->GetChildHandle("bRandomlyNegate").ToSharedRef();
-
-	TSharedRef<IPropertyHandle> PropertyHandle_Z = PropertyHandle->GetChildHandle("Z").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Z_Min = PropertyHandle_Z->GetChildHandle("Min").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Z_Max = PropertyHandle_Z->GetChildHandle("Max").ToSharedRef();
-	TSharedRef<IPropertyHandle> PropertyHandle_Z_RandomlyNegate = PropertyHandle_Z->GetChildHandle("bRandomlyNegate").ToSharedRef();
-
-	float LabelPadding = 2.0f;
-	float ComponentPadding = 16.0f;
-
-	Category.AddCustomRow(LOCTEXT("VectorFilter", "Vector"))
-	.NameContent()
-	[
-		PropertyHandle->CreatePropertyNameWidget()
-	]
-	.ValueContent()
-	.MinDesiredWidth(125.0f * 3.0f) // copied from FComponentTransformDetails
-	.MaxDesiredWidth(125.0f * 3.0f)
-	[
-		SNew(SHorizontalBox)
-		+ SHorizontalBox::Slot()
-		.FillWidth(1)
-		.Padding(0.f, 0.f, ComponentPadding, 0.f)
-		.AutoWidth()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				PropertyHandle_X_Min->CreatePropertyNameWidget(LOCTEXT("MinXLabel","Min X"))
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(LabelPadding, 0.f, 0.f, 0.f)
-			.AutoWidth()
-			[
-				PropertyHandle_X_Min->CreatePropertyValueWidget()
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.Padding(0.f, 0.f, ComponentPadding, 0.f)
-		.AutoWidth()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				PropertyHandle_X_Max->CreatePropertyNameWidget(LOCTEXT("MaxXLabel","Max X"))
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(LabelPadding, 0.f, 0.f, 0.f)
-			.AutoWidth()
-			[
-				PropertyHandle_X_Max->CreatePropertyValueWidget()
-			]
-		]
-		+ SHorizontalBox::Slot()
-		.Padding(0.f, 0.f, ComponentPadding, 0.f)
-		.AutoWidth()
-		[
-			SNew(SHorizontalBox)
-			+ SHorizontalBox::Slot()
-			.AutoWidth()
-			[
-				PropertyHandle_X_RandomlyNegate->CreatePropertyNameWidget(LOCTEXT("RandomlyNegateXLabel","Randomly Negate X"))
-			]
-			+ SHorizontalBox::Slot()
-			.Padding(LabelPadding, 0.f, 0.f, 0.f)
-			.AutoWidth()
-			[
-				PropertyHandle_X_RandomlyNegate->CreatePropertyValueWidget()
-			]
-		]
 	];
 }
 

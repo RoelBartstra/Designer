@@ -56,8 +56,6 @@ public:
 	virtual void CustomizeDetails(IDetailLayoutBuilder& DetailBuilder) override;
 
     void BuildLocationPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle);
-
-    void BuildRandomMinMaxVectorPropertyWidget(IDetailLayoutBuilder& DetailBuilder, IDetailCategoryBuilder& Category, TSharedRef<IPropertyHandle> PropertyHandle);
     
 	void OnPaintTypeChanged(IDetailLayoutBuilder* LayoutBuilder);
 
