@@ -131,12 +131,11 @@ bool FSpawnAssetTool::MouseLeave(FEditorViewportClient* ViewportClient, FViewpor
 	return IsToolActive;
 }
 
-// Called when no mouse button is down, so can be used for the preview asset when the user holds down ctrl.
+// Called when no mouse button is down, so can be used for the preview asset when the user holds down alt.
 bool FSpawnAssetTool::MouseMove(FEditorViewportClient* ViewportClient, FViewport* Viewport, int32 x, int32 y)
 {
-	if (IsToolActive)
+	if (IsToolActive && !ControlledSpawnedActor)
 	{
-
 		if (PreviewActorArray.Num() == 0)
 		{
 			RefreshPreviewActors();
@@ -161,9 +160,6 @@ bool FSpawnAssetTool::ReceivedFocus(FEditorViewportClient* ViewportClient, FView
 
 bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
 {
-	// When focus is lost the tool has to be disabled to fix issues with the current state based on the keys pressed by the user.
-	//SetToolActive(false);
-
 	return FDesignerTool::LostFocus(ViewportClient, Viewport);
 }
 
@@ -198,15 +194,12 @@ bool FSpawnAssetTool::InputDelta(FEditorViewportClient* InViewportClient, FViewp
 
 bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
 {
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey"));
 	bool bHandled = false;
 
 	if (Key == EKeys::LeftAlt || Key == EKeys::RightAlt)
 	{
 		if (Event == IE_Pressed && !IsToolActive)
 		{
-			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Tool activated."));
-
 			ViewportClient->SetRealtimeOverride(true, LOCTEXT("RealtimeOverrideMessage_DesignerMode", "Designer Mode"));
 
 			SetToolActive(true);
@@ -223,7 +216,6 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		}
 		else if (Event == IE_Released && IsToolActive)
 		{
-			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Tool deactivated"));
 			bHandled = true;
 
 			ViewportClient->RemoveRealtimeOverride();
@@ -348,8 +340,6 @@ void FSpawnAssetTool::DrawHUD(FEditorViewportClient* ViewportClient, FViewport* 
 // This is called when the left or right mouse button is pressed twice?!?!?!
 bool FSpawnAssetTool::StartModify()
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::StartModify"));
-
 	// If user double clicks mouse button while in preview mode it should still regenerate the random.
 	if (PreviewActorArray.Num() > 0)
 	{
@@ -363,19 +353,16 @@ bool FSpawnAssetTool::StartModify()
 
 bool FSpawnAssetTool::EndModify()
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::EndModify"));
 	return false;
 }
 
 void FSpawnAssetTool::StartTrans()
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::StartTrans"));
 
 }
 
 void FSpawnAssetTool::EndTrans()
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::EndTrans"));
 
 }
 
@@ -458,8 +445,6 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 
 void FSpawnAssetTool::SetAllMaterialsForActor(AActor* Actor, UMaterialInterface* Material)
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting material: %s"), *Material->GetName());
-
 	if (Actor != nullptr && Material != nullptr)
 	{
 		TArray<UPrimitiveComponent*> PrimitiveComponentArray;
@@ -481,8 +466,6 @@ void FSpawnAssetTool::SetAllMaterialsForActor(AActor* Actor, UMaterialInterface*
 void FSpawnAssetTool::RefreshPreviewActors()
 {
 	DestroyPreviewActors();
-
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Refreshing preview actor array"));
 	
 	UActorFactory* ActorFactory = FActorFactoryAssetProxy::GetFactoryForAssetObject(TargetAssetDataToSpawn.GetAsset());
 	if (TargetAssetDataToSpawn.GetClass() != nullptr)
@@ -509,8 +492,6 @@ void FSpawnAssetTool::RefreshPreviewActors()
 
 void FSpawnAssetTool::DestroyPreviewActors()
 {
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Destroying preview actor array"));
-
 	for (AActor* Actor : PreviewActorArray)
 	{
 		if (IsValid(Actor))
@@ -706,8 +687,6 @@ bool FSpawnAssetTool::IsAssetDataPlaceable(FAssetData AssetData)
 
 			bPlaceable = (ClassFlags & NotPlaceableFlags) == CLASS_None;
 		}
-
-		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: is placeable blueprint class: %s"), (bPlaceable ? TEXT("True") : TEXT("False")));
 	}
 
 	return bPlaceable;
