@@ -51,13 +51,15 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 	UDesignerSettings* DesignerSettings = DesignerEdMode->GetDesignerSettings();
 	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("SpawnSettings");
 
-	IDetailGroup& LocationOffsetsGroup = Category.AddGroup("LocationOffsetsGroup", LOCTEXT("LocationOffsets", "Location Offsets"), false, true);	
-	BuildLocationPropertyWidget(DetailBuilder, LocationOffsetsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
-	BuildLocationPropertyWidget(DetailBuilder, LocationOffsetsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
-
 	IDetailGroup& AxisAlignmentGroup = Category.AddGroup("AxisAlignmentGroup", LOCTEXT("AxisAlignment", "Axis Alignment"), false, true);
 	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithNormal)));
 	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));
+
+	IDetailGroup& LocationSettingsGroup = Category.AddGroup("LocationOffsetsGroup", LOCTEXT("LocationSettings", "Location Settings"), false, true);	
+	BuildLocationPropertyWidget(DetailBuilder, LocationSettingsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
+	LocationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bScaleRelativeLocationOffset)));
+	BuildLocationPropertyWidget(DetailBuilder, LocationSettingsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, WorldLocationOffset)));
+	LocationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, bScaleWorldLocationOffset)));
 
 	IDetailGroup& RotationSettingsGroup = Category.AddGroup("RotationSettingsGroup", LOCTEXT("RotationSettings", "Rotation Settings"), false, true);
 	RotationSettingsGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, SnapRotationToGrid)));

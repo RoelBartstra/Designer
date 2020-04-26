@@ -803,19 +803,31 @@ void FSpawnAssetTool::UpdatePreviewActorTransform()
 	FTransform NewSpawnedActorTransform = SpawnWorldTransform;
 	NewSpawnedActorTransform.SetScale3D(GetSpawnActorScale());
 	NewSpawnedActorTransform.SetRotation(GetSpawnActorRotation().Quaternion());
+	
+	FVector RelativeLocationOffset = GetDesignerSettings()->RelativeLocationOffset;
+	if (GetDesignerSettings()->bScaleRelativeLocationOffset)
+	{
+		RelativeLocationOffset *= GetSpawnActorScale();
+	}
+
+	FVector WorldLocationOffset = GetDesignerSettings()->WorldLocationOffset;
+	if (GetDesignerSettings()->bScaleWorldLocationOffset)
+	{
+		WorldLocationOffset *= GetSpawnActorScale();
+	}
 
 	if (PreviewActor != nullptr)
 	{
 		PreviewActor->SetActorTransform(NewSpawnedActorTransform);
-		PreviewActor->AddActorWorldOffset(GetDesignerSettings()->WorldLocationOffset);
-		PreviewActor->AddActorLocalOffset(GetDesignerSettings()->RelativeLocationOffset);
+		PreviewActor->AddActorLocalOffset(RelativeLocationOffset);
+		PreviewActor->AddActorWorldOffset(WorldLocationOffset);
 	}
 
 	if (PreviewActorPulsing != nullptr)
 	{
 		PreviewActorPulsing->SetActorTransform(NewSpawnedActorTransform);
-		PreviewActorPulsing->AddActorWorldOffset(GetDesignerSettings()->WorldLocationOffset);
-		PreviewActorPulsing->AddActorLocalOffset(GetDesignerSettings()->RelativeLocationOffset);
+		PreviewActorPulsing->AddActorLocalOffset(RelativeLocationOffset);
+		PreviewActorPulsing->AddActorWorldOffset(WorldLocationOffset);
 	}
 
 }
@@ -853,8 +865,8 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 
 	if (NewScale.ContainsNaN())
 	{
-		NewScale = FVector::OneVector;
-		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to one. DefaultDesignerActorExtent = %s."), *DefaultSpawnedActorExtent.ToString());
+		NewScale = FVector(GetDesignerSettings()->MinimalScale);
+		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to the minimal scale. DefaultDesignerActorExtent = %s."), *DefaultSpawnedActorExtent.ToString());
 	}
 
 	NewScale = NewScale.ComponentMax(FVector(GetDesignerSettings()->MinimalScale));
@@ -862,12 +874,24 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 	NewSpawnedActorTransform.SetScale3D(NewScale);
 
 	NewSpawnedActorTransform.SetRotation(GetSpawnActorRotation().Quaternion());
+	
+	FVector RelativeLocationOffset = GetDesignerSettings()->RelativeLocationOffset;
+	if (GetDesignerSettings()->bScaleRelativeLocationOffset)
+	{
+		RelativeLocationOffset *= NewScale;
+	}
+
+	FVector WorldLocationOffset = GetDesignerSettings()->WorldLocationOffset;
+	if (GetDesignerSettings()->bScaleWorldLocationOffset)
+	{
+		WorldLocationOffset *= NewScale;
+	}
 
 	if (ControlledSpawnedActor != nullptr)
 	{
 		ControlledSpawnedActor->SetActorTransform(NewSpawnedActorTransform);
-		ControlledSpawnedActor->AddActorWorldOffset(GetDesignerSettings()->WorldLocationOffset);
-		ControlledSpawnedActor->AddActorLocalOffset(GetDesignerSettings()->RelativeLocationOffset);
+		ControlledSpawnedActor->AddActorLocalOffset(RelativeLocationOffset);
+		ControlledSpawnedActor->AddActorWorldOffset(WorldLocationOffset);
 	}
 }
 

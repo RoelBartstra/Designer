@@ -211,9 +211,17 @@ public:
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	FVector RelativeLocationOffset;
 
+	/** Scale the relative location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	bool bScaleRelativeLocationOffset;
+
 	/** The spawn rotation offset in world space */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
 	FVector WorldLocationOffset;
+
+	/** Scale the world location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
+	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	bool bScaleWorldLocationOffset;
 
 	/** Actor axis vector to align with the hit surface direction */
 	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
