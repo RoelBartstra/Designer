@@ -31,6 +31,7 @@
 #include "IDetailRootObjectCustomization.h"
 
 class IPropertyHandle;
+class UDesignerSettings;
 
 /**
  * 
@@ -64,6 +65,11 @@ public:
 
     template<typename type>
     static void SetPropertyValue(type NewValue, ETextCommit::Type CommitInfo, TSharedRef<IPropertyHandle> PropertyHandle);
+	
+	UDesignerSettings* DesignerSettings;
+
+	/** Error visibility for UI. */
+	EVisibility AxisErrorVisibilityUI() const;
 };
 
 template<typename type>

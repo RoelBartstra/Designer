@@ -38,6 +38,11 @@
 
 #include "EditorModeManager.h"
 
+#include "SlateOptMacros.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SScrollBox.h"
+#include "Widgets/Text/STextBlock.h"
+
 #define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
 TSharedRef<IDetailCustomization> FDesignerSettingsCustomization::MakeInstance()
@@ -48,12 +53,31 @@ TSharedRef<IDetailCustomization> FDesignerSettingsCustomization::MakeInstance()
 void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& DetailBuilder)
 {	
 	FDesignerEdMode* DesignerEdMode = (FDesignerEdMode*)GLevelEditorModeTools().GetActiveMode(FDesignerEdMode::EM_DesignerEdModeId);
-	UDesignerSettings* DesignerSettings = DesignerEdMode->GetDesignerSettings();
+	DesignerSettings = DesignerEdMode->GetDesignerSettings();
 	IDetailCategoryBuilder& Category = DetailBuilder.EditCategory("SpawnSettings");
 
 	IDetailGroup& AxisAlignmentGroup = Category.AddGroup("AxisAlignmentGroup", LOCTEXT("AxisAlignment", "Axis Alignment"), false, true);
 	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithNormal)));
 	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));
+	AxisAlignmentGroup.AddWidgetRow()
+	[
+		SNew(SScrollBox)
+		+ SScrollBox::Slot()
+		.Padding(0.0f)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.AutoHeight()
+			+ SVerticalBox::Slot()
+			[
+				SNew(STextBlock)
+				.AutoWrapText(true)
+				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+				.Visibility_Raw(this, &FDesignerSettingsCustomization::AxisErrorVisibilityUI)
+				.Text(LOCTEXT("AxisError", "\"Axis to Align with Normal\" and \"Axis to Align with Cursor\" are along the same surface, this will give incorrect results!"))
+			]
+		]
+	];
 
 	IDetailGroup& LocationSettingsGroup = Category.AddGroup("LocationOffsetsGroup", LOCTEXT("LocationSettings", "Location Settings"), false, true);	
 	BuildLocationPropertyWidget(DetailBuilder, LocationSettingsGroup, DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, RelativeLocationOffset)));
@@ -123,6 +147,11 @@ TSharedPtr<SWidget> FDesignerSettingsRootObjectCustomization::CustomizeObjectHea
 {
 	//UE_LOG(LogDesigner, Error, TEXT("FDesignerSettingsRootObjectCustomization::CustomizeObjectHeader"));
 	return SNullWidget::NullWidget;
+}
+
+EVisibility FDesignerSettingsCustomization::AxisErrorVisibilityUI() const
+{
+   return ((int)DesignerSettings->AxisToAlignWithNormal && ((int)DesignerSettings->AxisToAlignWithNormal >> 1) == ((int)DesignerSettings->AxisToAlignWithCursor >> 1)) ? EVisibility::Visible : EVisibility::Collapsed;
 }
 
 #undef LOCTEXT_NAMESPACE
