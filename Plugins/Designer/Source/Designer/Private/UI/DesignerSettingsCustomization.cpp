@@ -58,24 +58,18 @@ void FDesignerSettingsCustomization::CustomizeDetails(IDetailLayoutBuilder& Deta
 
 	IDetailGroup& AxisAlignmentGroup = Category.AddGroup("AxisAlignmentGroup", LOCTEXT("AxisAlignment", "Axis Alignment"), false, true);
 	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithNormal)));
-	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));
+	AxisAlignmentGroup.AddPropertyRow(DetailBuilder.GetProperty(GET_MEMBER_NAME_CHECKED(UDesignerSettings, AxisToAlignWithCursor)));	
+	TAttribute<EVisibility> AxisErrorVisibilityAttribute = TAttribute<EVisibility>::Create(TAttribute<EVisibility>::FGetter::CreateSP(this, &FDesignerSettingsCustomization::AxisErrorVisibilityUI));
 	AxisAlignmentGroup.AddWidgetRow()
+	.Visibility(AxisErrorVisibilityAttribute)
 	[
-		SNew(SScrollBox)
-		+ SScrollBox::Slot()
-		.Padding(0.0f)
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot()
 		[
-			SNew(SVerticalBox)
-			+ SVerticalBox::Slot()
-			.AutoHeight()
-			+ SVerticalBox::Slot()
-			[
-				SNew(STextBlock)
-				.AutoWrapText(true)
-				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-				.Visibility_Raw(this, &FDesignerSettingsCustomization::AxisErrorVisibilityUI)
-				.Text(LOCTEXT("AxisError", "\"Axis to Align with Normal\" and \"Axis to Align with Cursor\" are along the same surface, this will give incorrect results!"))
-			]
+			SNew(STextBlock)
+			.AutoWrapText(true)
+			.ColorAndOpacity(FSlateColor(FLinearColor::Red))
+			.Text(LOCTEXT("AxisError", "\"Axis to Align with Normal\" and \"Axis to Align with Cursor\" are parallel, this is not allowed. Default rotation will be used instead."))
 		]
 	];
 

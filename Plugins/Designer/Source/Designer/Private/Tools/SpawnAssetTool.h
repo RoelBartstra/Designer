@@ -164,25 +164,11 @@ public:
 	 */
 	virtual bool InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event);
 
-	virtual void Render(const FSceneView* View,FViewport* Viewport,FPrimitiveDrawInterface* PDI);
-	virtual void DrawHUD(FEditorViewportClient* ViewportClient,FViewport* Viewport,const FSceneView* View,FCanvas* Canvas);
-
 	//@{
 	virtual bool StartModify();
 	virtual bool EndModify();
 	//@}
 
-	//@{
-	virtual void StartTrans();
-	virtual void EndTrans();
-	//@}
-
-	// Tick
-	virtual void Tick(FEditorViewportClient* ViewportClient, float DeltaTime);
-
-	/** @name Selections */
-	//@{
-	virtual void SelectNone();
 	/** @return		true if something was selected/deselected, false otherwise. */
 	virtual bool BoxSelect(FBox& InBox, bool InSelect = true);
 	//@}
@@ -244,4 +230,13 @@ private:
 
 	/** Get the designer actor rotation with all settings applied to it */
 	FRotator GetSpawnActorRotation();
+
+	/** Change the visibility of the spawn plane to be visible. */
+	void RegisterSpawnPlane(FEditorViewportClient* InViewportClient);
+	
+	/** Change the visibility of the spawn plane to be hidden. */
+	void UnregisterSpawnPlane();
+
+	/** The actor currently being spawned and controlled will now be released and the controlled actor will be set to null. */
+	void ReleaseControlledActor();
 };

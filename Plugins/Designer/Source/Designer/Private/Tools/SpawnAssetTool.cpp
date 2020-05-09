@@ -159,7 +159,8 @@ bool FSpawnAssetTool::ReceivedFocus(FEditorViewportClient* ViewportClient, FView
 }
 
 bool FSpawnAssetTool::LostFocus(FEditorViewportClient* ViewportClient, FViewport* Viewport)
-{
+{	
+	SetToolActive(false);
 	return FDesignerTool::LostFocus(ViewportClient, Viewport);
 }
 
@@ -196,7 +197,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 {
 	bool bHandled = false;
 
-	if (Key == EKeys::LeftAlt || Key == EKeys::RightAlt)
+	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
 	{
 		if (Event == IE_Pressed && !IsToolActive)
 		{
@@ -277,16 +278,11 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 				SpawnVisualizerTransform.SetScale3D(FVector(10000));
 				SpawnPlaneComponent->SetRelativeTransform(SpawnVisualizerTransform);
 
-				if (!SpawnPlaneComponent->IsRegistered())
-				{
-					SpawnPlaneComponent->RegisterComponentWithWorld(ViewportClient->GetWorld());
-				}
-
+				RegisterSpawnPlane(ViewportClient);
 				UpdateSpawnedActorTransform();
 				UpdateSpawnVisualizerMaterialParameters();
 
 				bHandled = true;
-				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Actor factory available"));
 			}
 			else
 			{
@@ -298,43 +294,23 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	/** Left mouse button released while tool is active */
 	if (Key == EKeys::LeftMouseButton && Event == IE_Released && IsToolActive)
 	{
-		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::InputKey: Free spawned actor"));
 		bHandled = true;
 
 		// Regenerate random data for next actor but only if the current actor has actually been spawned.
 		if (ControlledSpawnedActor != nullptr)
 		{
-			RegenerateRandomRotationOffset();
-			RegenerateRandomScale();
+			RefreshPlaceableAsset();
 		}
 
 		DefaultSpawnedActorExtent = FVector::ZeroVector;
 
-		if (SpawnPlaneComponent->IsRegistered())
-		{
-			SpawnPlaneComponent->UnregisterComponent();
-		}
+		DestroyPreviewActors();
+		UnregisterSpawnPlane();
 
-		ReleasedSpawnedActor = ControlledSpawnedActor;
-		ControlledSpawnedActor = nullptr;
+		ReleaseControlledActor();
 	}
 
 	return bHandled;
-} 
-
-void FSpawnAssetTool::Render(const FSceneView* View, FViewport* Viewport, FPrimitiveDrawInterface* PDI)
-{
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::Render"));
-	//if (SpawnedActor == nullptr)
-	//{
-	//	DrawSphere(PDI, SpawnWorldTransform.GetLocation(), SpawnWorldTransform.GetRotation().Rotator(), FVector(5.F), 32, 32, GEngine->DebugEditorMaterial->GetRenderProxy(), SDPG_Foreground, false);
-	//}
-}
-
-void FSpawnAssetTool::DrawHUD(FEditorViewportClient* ViewportClient, FViewport* Viewport, const FSceneView* View, FCanvas* Canvas)
-{
-	//UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool::DrawHUD"));
-
 }
 
 // This is called when the left or right mouse button is pressed twice?!?!?!
@@ -354,26 +330,6 @@ bool FSpawnAssetTool::StartModify()
 bool FSpawnAssetTool::EndModify()
 {
 	return false;
-}
-
-void FSpawnAssetTool::StartTrans()
-{
-
-}
-
-void FSpawnAssetTool::EndTrans()
-{
-
-}
-
-void FSpawnAssetTool::Tick(FEditorViewportClient* ViewportClient, float DeltaTime)
-{
-
-}
-
-void FSpawnAssetTool::SelectNone()
-{
-
 }
 
 bool FSpawnAssetTool::BoxSelect(FBox& InBox, bool InSelect)
@@ -401,6 +357,7 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 			if (GEditor->GetSelectedActors() != nullptr)
 			{
 				GEditor->GetSelectedActors()->GetSelectedObjects<AActor>(PreviousSelection);
+				GEditor->SelectNone(false, true, false);
 			}
 
 			// Deselect all actors.
@@ -413,13 +370,16 @@ void FSpawnAssetTool::SetToolActive(bool IsActive)
 	else
 	{
 		UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Setting tool inactive."));
-		DestroyPreviewActors();
+		DestroyPreviewActors();		
+		UnregisterSpawnPlane();
+		ReleaseControlledActor();
 
 		// We have to deactivate the tool before we start messing with the selections, because selections are disabled while using the tool.
 		IsToolActive = false;
 
 		if (GEditor != nullptr)
 		{
+			GEditor->SelectNone(false, true, false);
 			if (ReleasedSpawnedActor != nullptr)
 			{
 				UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: Select newly spawned asset."));
@@ -478,15 +438,18 @@ void FSpawnAssetTool::RefreshPreviewActors()
 			SetAllMaterialsForActor(PreviewActor, PreviewActorMaterial);
 		}
 
-		PreviewActorPulsing = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
-		
-		if (IsValid(PreviewActorPulsing) && PreviewActorPulsing->IsValidLowLevel())
+		if (DesignerSettings->bScaleBoundsTowardsCursor)
 		{
-			PreviewActorArray.Add(PreviewActorPulsing);
-			PreviewActorPulsing->SetActorLabel("DesignerPreviewActorPulsing");
-			SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMaterial);
-		}
+			PreviewActorPulsing = SpawnPreviewActorFromFactory(ActorFactory, TargetAssetDataToSpawn, &SpawnWorldTransform, RF_Transient);
+		
+			if (IsValid(PreviewActorPulsing) && PreviewActorPulsing->IsValidLowLevel())
+			{
+				PreviewActorArray.Add(PreviewActorPulsing);
+				PreviewActorPulsing->SetActorLabel("DesignerPreviewActorPulsing");
+				SetAllMaterialsForActor(PreviewActorPulsing, PreviewActorPulsingMaterial);
 
+			}
+		}
 	}
 }
 
@@ -615,9 +578,7 @@ void FSpawnAssetTool::RefreshPlaceableAsset()
 			PlaceableSelectedAssets.Add(AssetData);
 		}
 	}
-
-	UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool: %d placeable assets selected in the content browser."), PlaceableSelectedAssets.Num());
-	
+		
 	// Pick random asset to spawn.
 	if (PlaceableSelectedAssets.Num() > 0)
 	{
@@ -630,7 +591,6 @@ void FSpawnAssetTool::RefreshPlaceableAsset()
 			// Remove previous asset, so a random selected asset is always a new one.
 			PlaceableSelectedAssets.Remove(TargetAssetDataToSpawn);
 			TargetAssetDataToSpawn = PlaceableSelectedAssets[FMath::RandRange(0, PlaceableSelectedAssets.Num() - 1)];
-			UE_LOG(LogDesigner, Log, TEXT("SpawnAssetTool:RefreshPlaceableAsset: Picked new random asset."));
 		}
 	}
 
@@ -848,7 +808,10 @@ void FSpawnAssetTool::UpdateSpawnedActorTransform()
 		UE_LOG(LogDesigner, Warning, TEXT("New scale contained NaN, so it is set to the minimal scale. DefaultDesignerActorExtent = %s."), *DefaultSpawnedActorExtent.ToString());
 	}
 
-	NewScale = NewScale.ComponentMax(FVector(GetDesignerSettings()->MinimalScale));
+	// Clamp the scale by minimum scale value.
+	FVector ClampedAbsoluteNewScale = NewScale.GetAbs();
+	ClampedAbsoluteNewScale = ClampedAbsoluteNewScale.ComponentMax(FVector(GetDesignerSettings()->MinimalScale));
+	NewScale = NewScale.GetSignVector() * ClampedAbsoluteNewScale;
 
 	NewSpawnedActorTransform.SetScale3D(NewScale);
 
@@ -998,7 +961,6 @@ FRotator FSpawnAssetTool::GetSpawnActorRotation()
 	{
 		// Default rotation of everything else fails
 		DesignerActorRotation = FMatrix(ForwardVector, RightVector, UpVector, FVector::ZeroVector).Rotator();
-		UE_LOG(LogDesigner, Warning, TEXT("Falling back to default rotation."));
 	}
 
 	// Apply the generated random rotation offset if the user has set the bApplyRandomRotation setting
@@ -1015,6 +977,31 @@ FRotator FSpawnAssetTool::GetSpawnActorRotation()
 	DesignerActorRotation.Yaw = GetDesignerSettings()->SnapRotationToGrid.Z ? SpawnRotationSnapped.Yaw : DesignerActorRotation.Yaw;
 
 	return DesignerActorRotation;
+}
+
+void FSpawnAssetTool::RegisterSpawnPlane(FEditorViewportClient* InViewportClient)
+{
+	if (!SpawnPlaneComponent->IsRegistered())
+	{
+		SpawnPlaneComponent->RegisterComponentWithWorld(InViewportClient->GetWorld());
+	}
+}
+
+void FSpawnAssetTool::UnregisterSpawnPlane()
+{
+	if (SpawnPlaneComponent->IsRegistered())
+	{
+		SpawnPlaneComponent->UnregisterComponent();
+	}
+}
+
+void FSpawnAssetTool::ReleaseControlledActor()
+{
+	if (ControlledSpawnedActor)
+	{
+		ReleasedSpawnedActor = ControlledSpawnedActor;
+		ControlledSpawnedActor = nullptr;
+	}
 }
 
 #undef LOCTEXT_NAMESPACE
