@@ -72,7 +72,7 @@ void FDesignerEdMode::Enter()
 		Toolkit->Init(Owner->GetToolkitHost());
 	}
 
-	SwitchTool(nullptr);
+	SwitchTool(SpawnAssetTool);
 }
 
 void FDesignerEdMode::Exit()
@@ -87,47 +87,6 @@ void FDesignerEdMode::Exit()
 
 	// Call base Exit method to ensure proper cleanup
 	FEdMode::Exit();
-}
-
-bool FDesignerEdMode::LostFocus(FEditorViewportClient * ViewportClient, FViewport * Viewport)
-{
-	bool bHandled = FEdMode::LostFocus(ViewportClient, Viewport);
-	SwitchTool(nullptr);
-
-	return bHandled;
-}
-
-bool FDesignerEdMode::InputKey(FEditorViewportClient* ViewportClient, FViewport* Viewport, FKey Key, EInputEvent Event)
-{
-	bool bHandled = false;
-
-	if (Key == EKeys::LeftControl || Key == EKeys::RightControl)
-	{
-		if (Event == IE_Pressed)
-		{
-			SwitchTool(SpawnAssetTool);
-			bHandled = true;
-		}
-		else if (Event == IE_Released)
-		{
-			SwitchTool(nullptr);
-			bHandled = true;
-		}
-	}
-
-	bool bHandledInSuper = FEdMode::InputKey(ViewportClient, Viewport, Key, Event);
-
-	return bHandled || bHandledInSuper;
-}
-
-bool FDesignerEdMode::DisallowMouseDeltaTracking() const
-{
-	return CurrentTool != nullptr;
-}
-
-bool FDesignerEdMode::HandleClick(FEditorViewportClient* InViewportClient, HHitProxy* HitProxy, const FViewportClick& Click)
-{
-	return false;
 }
 
 bool FDesignerEdMode::IsSelectionAllowed(AActor* InActor, bool bInSelection) const
@@ -148,6 +107,7 @@ bool FDesignerEdMode::UsesToolkits() const
 
 void FDesignerEdMode::SwitchTool(FDesignerTool* NewDesignerTool)
 {
+	UE_LOG(LogDesigner, Log, TEXT("FDesignerEdMode::SwitchTool"));
 	FDesignerTool* CurrentDesignerTool = static_cast<FDesignerTool*>(CurrentTool);
 	if (CurrentDesignerTool != nullptr)
 	{

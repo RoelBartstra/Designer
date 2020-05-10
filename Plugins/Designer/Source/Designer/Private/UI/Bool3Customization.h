@@ -25,35 +25,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "EditorModeTools.h"
-#include "UObject/GCObject.h"
+
+#include "IDetailCustomization.h"
+#include "DetailCategoryBuilder.h"
+#include "IDetailRootObjectCustomization.h"
 
 /**
- * Tool for spawning assets from the content browser.
+ * 
  */
-class FDesignerTool : public FModeTool, public FGCObject
+class FBool3Customization : public IPropertyTypeCustomization
 {
 public:
-	FDesignerTool() {}
+	static TSharedRef<IPropertyTypeCustomization> MakeInstance();
 
-	~FDesignerTool() {}
+	/** IPropertyTypeCustomization interface */
+	virtual void CustomizeHeader(TSharedRef<class IPropertyHandle> PropertyHandle, class FDetailWidgetRow& HeaderDetailWidgetRow, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
+	virtual void CustomizeChildren(TSharedRef<class IPropertyHandle> PropertyHandle, class IDetailChildrenBuilder& DetailChildrenBuilder, IPropertyTypeCustomizationUtils& CustomizationUtils) override;
 
-	virtual void AddReferencedObjects(FReferenceCollector& Collector) {}
-
-	/** Returns the name that gets reported to the editor */
-	virtual FString GetName() const { return TEXT("DesignerTool"); }
-
-	/** Called by the designer ed mode when switching to this tool */
-	virtual void EnterTool() {}
-
-	/** Called by the designer ed mode when switching to another tool from this tool */
-	virtual void ExitTool() {}
-
-    /** Determines whether the tool is currently in use or not */
-    virtual void SetToolActive(bool IsActive) {}
-
-	/** Check to see if an actor can be selected in this mode - no side effects */
-	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const { return true; }
-
-    bool IsToolActive;
+private:
+	TSharedPtr<IPropertyHandle> Bool3PropertyHandle;
 };
+

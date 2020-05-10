@@ -27,7 +27,7 @@
 #include "DesignerModule.h"
 #include "DesignerEdMode.h"
 #include "DesignerSettings.h"
-#include "DesignerSettingsCustomization.h"
+#include "UI/DesignerSettingsCustomization.h"
 
 #include "EditorModeManager.h"
 #include "EditorModes.h"
@@ -40,7 +40,7 @@
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Text/STextBlock.h"
 
-#define LOCTEXT_NAMESPACE "DesignerEdMode"
+#define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesignerEdModeToolkit> InParentToolkit)
@@ -70,7 +70,6 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 	if (DesignerEdMode)
 	{
 		DetailsPanel->SetObject(DesignerEdMode->GetDesignerSettings(), true);
-		DesignerSettings = DesignerEdMode->GetDesignerSettings();
 	}
 
 	ChildSlot
@@ -87,23 +86,10 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 			[
 				DetailsPanel.ToSharedRef()
 			]
-			+ SVerticalBox::Slot()
-			[
-				SNew(STextBlock)
-				.AutoWrapText(true)
-				.ColorAndOpacity(FSlateColor(FLinearColor::Red))
-				.Visibility_Raw(this, &SDesignerSettings::AxisErrorVisibility)
-				.Text(LOCTEXT("AxisError", "\"Axis to Align with Normal\" and \"Axis to Align with Cursor\" both use the same axis, this will give incorrect results!"))
-			]
 		]
 	];
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
-
-EVisibility SDesignerSettings::AxisErrorVisibility() const
-{
-	return ((int)DesignerSettings->AxisToAlignWithNormal && ((int)DesignerSettings->AxisToAlignWithNormal >> 1) == ((int)DesignerSettings->AxisToAlignWithCursor >> 1)) ? EVisibility::Visible : EVisibility::Hidden;
-}
 
 FDesignerEdMode* SDesignerSettings::GetEditorMode() const
 {

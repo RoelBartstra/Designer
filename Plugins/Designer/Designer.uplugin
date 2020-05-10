@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "0.3.2",
+	"VersionName": "1.0.0",
 	"FriendlyName": "Designer",
-	"Description": "Easy to use level design tools.",
+	"Description": "Tool for placing actors in the world using only a single mouse click to position, rotate and scale the asset.",
 	"Category": "Editor Modes",
 	"CreatedBy": "Roel Bartstra",
 	"CreatedByURL": "www.roelbartstra.com/",
@@ -11,7 +11,7 @@
 	"MarketplaceURL": "",
 	"SupportURL": "www.unrealengineer.com/designer",
 	"CanContainContent": true,
-	"IsBetaVersion": true,
+	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [

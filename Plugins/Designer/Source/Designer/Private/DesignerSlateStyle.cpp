@@ -42,6 +42,10 @@ TSharedPtr<class ISlateStyle> FDesignerSlateStyle::Get() { return StyleSet; }
 
 void FDesignerSlateStyle::Initialize()
 {
+	// Icon sizes
+	const FVector2D IconSize20(20.0f, 20.0f);
+	const FVector2D IconSize40(40.0f, 40.0f);
+
 	// Only register once
 	if (StyleSet.IsValid())
 	{
@@ -64,7 +68,12 @@ void FDesignerSlateStyle::Initialize()
 		StyleSet->SetCoreContentRoot(EngineResourceDir);
 	}
 
-	StyleSet->Set("Designer.Icon", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon40", ".png"), FVector2D(40.0f, 40.0f)));
+	{
+		StyleSet->Set("Designer.Icon", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon40", ".png"), IconSize40));
+		StyleSet->Set("Designer.Icon.Small", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon20", ".png"), IconSize20));
+		StyleSet->Set("Designer.Icon.Selected", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon40", ".png"), IconSize40));
+		StyleSet->Set("Designer.Icon.Selected.Small", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon20", ".png"), IconSize20));
+	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
 };
