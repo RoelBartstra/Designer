@@ -44,6 +44,7 @@
 #include "DesignerSettings.h"
 
 #include "Editor.h"
+#include "Logging/MessageLog.h"
 
 #define LOCTEXT_NAMESPACE "FDesignerEditorMode"
 
@@ -201,7 +202,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 	{
 		if (Event == IE_Pressed && !IsToolActive)
 		{
-			ViewportClient->SetRealtimeOverride(true, LOCTEXT("RealtimeOverrideMessage_DesignerMode", "Designer Mode"));
+			ViewportClient->AddRealtimeOverride(true, FText::FromString("Designer_SpawnAssetTool"));
 
 			SetToolActive(true);
 
@@ -219,7 +220,7 @@ bool FSpawnAssetTool::InputKey(FEditorViewportClient* ViewportClient, FViewport*
 		{
 			bHandled = true;
 
-			ViewportClient->RemoveRealtimeOverride();
+			ViewportClient->RemoveRealtimeOverride(FText::FromString("Designer_SpawnAssetTool"));
 			GEditor->RedrawAllViewports(false);
 
 			SetToolActive(false);
