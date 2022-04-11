@@ -39,6 +39,11 @@ public:
 	~FDesignerTool() {}
 
 	virtual void AddReferencedObjects(FReferenceCollector& Collector) {}
+	
+	virtual FString GetReferencerName() const override
+	{
+		return TEXT("FDesignerTool");
+	}
 
 	/** Returns the name that gets reported to the editor */
 	virtual FString GetName() const { return TEXT("DesignerTool"); }
@@ -50,10 +55,10 @@ public:
 	virtual void ExitTool() {}
 
     /** Determines whether the tool is currently in use or not */
-    virtual void SetToolActive(bool IsActive) {}
+    virtual void SetToolActive(bool NewIsActive) {}
 
 	/** Check to see if an actor can be selected in this mode - no side effects */
 	virtual bool IsSelectionAllowed(AActor* InActor, bool bInSelection) const { return true; }
 
-    bool IsToolActive;
+    bool bIsToolActive;
 };

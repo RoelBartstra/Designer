@@ -1,5 +1,5 @@
 #      Designer Manual
-###### Manual Version 1.6 | Designer Plugin Version 1.0.0 | Unreal Engine Version 4.26
+###### Manual Version 1.7 | Designer Plugin Version 1.0.0 | Unreal Engine Version 5.0
 
 
 

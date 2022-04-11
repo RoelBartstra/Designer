@@ -21,7 +21,7 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 	{
 		TSharedRef<IPropertyHandle> PropertyHandle_Min = PropertyHandle->GetChildHandle("Min").ToSharedRef();
 		TSharedRef<IPropertyHandle> PropertyHandle_Max = PropertyHandle->GetChildHandle("Max").ToSharedRef();
-		TSharedRef<IPropertyHandle> PropertyHandle_RandomlyNegate = PropertyHandle->GetChildHandle("bRandomlyNegate").ToSharedRef();
+		TSharedRef<IPropertyHandle> PropertyHandle_RandomlyNegative = PropertyHandle->GetChildHandle("bRandomSign").ToSharedRef();
 
 		float LabelPadding = 4.0f;
 		float ComponentPadding = 8.0f;
@@ -32,8 +32,8 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 		float ValueMax;
 		PropertyHandle_Max->GetValue(ValueMax);
 
-		float ValueRandomlyNegate;
-		PropertyHandle_RandomlyNegate->GetValue(ValueRandomlyNegate);
+		float ValueRandomlyNegative;
+		PropertyHandle_RandomlyNegative->GetValue(ValueRandomlyNegative);
 
 		DetailChildrenBuilder.AddCustomRow(LOCTEXT("MinMaxFilter", "MinMax"))
 		.NameContent()
@@ -87,13 +87,13 @@ void FRandomMinMaxFloatCustomization::CustomizeChildren(TSharedRef<class IProper
 				.VAlign(VAlign_Center)
 				.AutoWidth()
 				[
-					PropertyHandle_RandomlyNegate->CreatePropertyNameWidget(FText::FromString("Can Negate"))
+					PropertyHandle_RandomlyNegative->CreatePropertyNameWidget()
 				]
 				+ SHorizontalBox::Slot()
 				.VAlign(VAlign_Center)
 				.Padding(LabelPadding, 0.f, 0.f, 0.f)
 				[
-					PropertyHandle_RandomlyNegate->CreatePropertyValueWidget()
+					PropertyHandle_RandomlyNegative->CreatePropertyValueWidget()
 				]
 			]
 		];

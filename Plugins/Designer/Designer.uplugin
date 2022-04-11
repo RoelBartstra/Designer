@@ -10,9 +10,8 @@
 	"DocsURL": "www.unrealengineer.com/designer-manual",
 	"MarketplaceURL": "",
 	"SupportURL": "www.unrealengineer.com/designer",
+	"EngineVersion": "5.0.0",
 	"CanContainContent": true,
-	"IsBetaVersion": false,
-	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [
 		{
@@ -20,5 +19,7 @@
 			"Type": "Editor",
 			"LoadingPhase": "Default"
 		}
-	]
+	],
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false
 }

@@ -77,7 +77,7 @@ struct FRandomMinMaxFloat
 	 * i.e. if Min = 30 and Max = 30 the outcome can be either 30 or -30 when this is set to true
 	 */
 	UPROPERTY(Category = "Random", EditAnywhere)
-	bool bRandomlyNegate;
+	bool bRandomSign;
 
 private:
 	/** The randomly generated value */
@@ -89,16 +89,16 @@ public:
 	{
 		this->Min = 0.F;
 		this->Max = 1.F;
-		this->bRandomlyNegate = false;
+		this->bRandomSign = false;
 
 		RegenerateRandomValue();
 	}
 
-	FRandomMinMaxFloat(float Min, float Max, bool bRandomlyNegateValue = false)
+	FRandomMinMaxFloat(float Min, float Max, bool bRandomSign = false)
 	{
 		this->Min = Min;
 		this->Max = Max;
-		this->bRandomlyNegate = bRandomlyNegateValue;
+		this->bRandomSign = bRandomSign;
 
 		RegenerateRandomValue();
 	}
@@ -107,7 +107,7 @@ public:
 	FORCEINLINE float GetCurrentRandomValue() { return RandomValue; }
 
 	/** Regenerates the random value and returns it. The value can also be retrieved later as well using GetCurrentRandomValue */
-	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomlyNegate ? -1.F : 1.F); }
+	FORCEINLINE float RegenerateRandomValue() { return RandomValue = FMath::RandRange(Min, Max) * (FMath::RandBool() && bRandomSign ? -1.F : 1.F); }
 };
 
 /**
@@ -207,63 +207,78 @@ class DESIGNER_API UDesignerSettings : public UObject
 	GENERATED_UCLASS_BODY()
 
 public:
-	/** The spawn location offset in relative space */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	FVector RelativeLocationOffset;
-
-	/** Scale the relative location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	bool bScaleRelativeLocationOffset;
-
-	/** The spawn rotation offset in world space */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	FVector WorldLocationOffset;
-
-	/** Scale the world location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
-	bool bScaleWorldLocationOffset;
-
 	/** Actor axis vector to align with the hit surface direction */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "AxisAlignment", EditAnywhere)
 	EAxisType AxisToAlignWithNormal;
 
 	/** Actor axis vector to align with the cursor direction */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "AxisAlignment", EditAnywhere)
 	EAxisType AxisToAlignWithCursor;
 
+	/** The spawn location offset in relative space */
+	UPROPERTY(Category = "LocationSettings", EditAnywhere)
+	FVector RelativeLocationOffset;
+
+	/** Scale the relative location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
+	UPROPERTY(Category = "LocationSettings", EditAnywhere)
+	bool bScaleRelativeLocationOffset;
+
+	/** The spawn rotation offset in world space */
+	UPROPERTY(Category = "LocationSettings", EditAnywhere)
+	FVector WorldLocationOffset;
+
+	/** Scale the world location offset according to the scale of the mesh. A scale of (1,1,1) = the exact offset filled in. */
+	UPROPERTY(Category = "LocationSettings", EditAnywhere)
+	bool bScaleWorldLocationOffset;
+
+	/** Scale the offset done when using the scroll wheel while placing an asset. This offset is always done along the surface of the hit normal and is relative to the z bounds of the object. */
+	UPROPERTY(Category = "LocationSettings", EditAnywhere)
+	float ScrollWheelOffsetScale;
+
 	/** Is the rotation x axis snapped to the grid set in the viewport grid settings */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "RotationSettings", EditAnywhere)
 	FBool3 SnapRotationToGrid;
-	
+
 	/** Randomly rotates the mesh */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "RotationSettings", EditAnywhere)
 	bool bApplyRandomRotation;
-	
+
 	/** Random rotation offset applied to the x axis rotation matrix on spawn */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
+	UPROPERTY(Category = "RotationSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomRotation"))
 	FRandomMinMaxVector RandomRotation;
 
 	/** Scale the bounds of the mesh towards the cursor location */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "ScaleSettings", EditAnywhere)
 	bool bScaleBoundsTowardsCursor;
 
 	/** The minimal scale which is applied to the mesh when spawning */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (UIMin = "0.1", UIMax = "1.0", ClampMin = "0.01", ClampMax = "100.0"))
+	UPROPERTY(Category = "ScaleSettings", EditAnywhere, meta = (UIMin = "0.1", UIMax = "1.0", ClampMin = "0.01", ClampMax = "10000.0", EditCondition = "bScaleBoundsTowardsCursor"))
 	float MinimalScale;
-	
+
 	/** Randomly scale the mesh */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere)
+	UPROPERTY(Category = "ScaleSettings", EditAnywhere)
 	bool bApplyRandomScale;
 
-	/** Random scale for x axis */
-	UPROPERTY(Category = "SpawnSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	/** Scale the mesh by the same amount in all axes. */
+	UPROPERTY(Category = "ScaleSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
+	bool bUseUniformRandomScale;
+
+	/** Random scale. */
+	UPROPERTY(Category = "ScaleSettings", EditAnywhere, meta = (EditCondition = "bApplyRandomScale"))
 	FRandomMinMaxVector RandomScale;
 
+public:
 	/**
 	 * Always returns the positive axis of the current selected AxisToAlignWithCursor
 	  * i.e. Backward becomes Forward while Up stays Up.
 	*/
 	FORCEINLINE EAxisType GetPositiveAxisToAlignWithCursor() { return (EAxisType)(~1 & (int)AxisToAlignWithCursor); }
+
+	/** Get random scale with resolved uniform scaling. */
+	FORCEINLINE FVector GetRandomScale() { return bUseUniformRandomScale ? FVector(RandomScale.GetCurrentRandomValue().X) : RandomScale.GetCurrentRandomValue(); }
+
+	/** Get the scale the spawned actor should have. Minimal scale is applied as well so it should never be lower than this value. */
+	FVector GetScale();
 
 private:
 	FDesignerEdMode* ParentEdMode;

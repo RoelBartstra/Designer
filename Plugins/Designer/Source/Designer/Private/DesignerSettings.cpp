@@ -27,18 +27,39 @@
 
 UDesignerSettings::UDesignerSettings(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
+	, AxisToAlignWithNormal(EAxisType::Up)
+	, AxisToAlignWithCursor(EAxisType::Forward)
 	, RelativeLocationOffset(FVector::ZeroVector)
 	, bScaleRelativeLocationOffset(false)
 	, WorldLocationOffset(FVector::ZeroVector)
 	, bScaleWorldLocationOffset(false)
-	, AxisToAlignWithNormal(EAxisType::Up)
-	, AxisToAlignWithCursor(EAxisType::Forward)
+	, ScrollWheelOffsetScale(0.05F)
 	, SnapRotationToGrid(FBool3())
 	, bApplyRandomRotation(false)
 	, RandomRotation(FRandomMinMaxFloat(0.F, 360.F), FRandomMinMaxFloat(0.F, 360.F), FRandomMinMaxFloat(0.F, 360.F))
 	, bScaleBoundsTowardsCursor(true)
-    , MinimalScale(0.3F)
+	, MinimalScale(0.3F)
 	, bApplyRandomScale(false)
+	, bUseUniformRandomScale(true)
 	, RandomScale(FRandomMinMaxFloat(0.8F, 1.2F, true), FRandomMinMaxFloat(0.8F, 1.2F, true), FRandomMinMaxFloat(0.8F, 1.2F, true))
 {
+}
+
+FVector UDesignerSettings::GetScale()
+{
+	if (bApplyRandomScale)
+	{
+		if (bScaleBoundsTowardsCursor)
+		{
+			return MinimalScale * GetRandomScale();
+		}
+		else
+		{
+			return GetRandomScale();
+		}
+	}
+	else
+	{
+		return FVector(MinimalScale);
+	}
 }

@@ -47,19 +47,16 @@ void SDesignerSettings::Construct(const FArguments & InArgs, TSharedRef<FDesigne
 {
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::LoadModuleChecked<FPropertyEditorModule>("PropertyEditor");
 
-	FDetailsViewArgs DetailsViewArgs(
-		/*bUpdateFromSelection*/	false,
-		/*bLockable*/				false,
-		/*bAllowSearch*/			false,
-		/*InNameAreaSettings*/		FDetailsViewArgs::HideNameArea,
-		/*bHideSelectionTip*/		true,
-		/*InNotifyHook*/			nullptr,
-		/*InSearchInitialKeyFocus*/	false,
-		/*InViewIdentifier*/		NAME_None);
+	FDetailsViewArgs DetailsViewArgs = FDetailsViewArgs();
+	DetailsViewArgs.bUpdatesFromSelection = false;
+	DetailsViewArgs.bLockable = false;
+	DetailsViewArgs.bAllowSearch = false;
+	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
+	DetailsViewArgs.bHideSelectionTip = true;
+	DetailsViewArgs.bAllowFavoriteSystem = false;
 
 	DetailsViewArgs.DefaultsOnlyVisibility = EEditDefaultsOnlyNodeVisibility::Automatic;
 	DetailsViewArgs.bShowOptions = false;
-	//DetailsViewArgs.bAllowMultipleTopLevelObjects = true;
 
 	DetailsPanel = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	DetailsPanel->SetIsPropertyVisibleDelegate(FIsPropertyVisible::CreateSP(this, &SDesignerSettings::GetIsPropertyVisible));

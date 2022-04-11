@@ -29,16 +29,22 @@
 #include "HAL/FileManager.h"
 #include "Interfaces/IPluginManager.h"
 
+#define IMAGE_BRUSH(RelativePath, ...) FSlateImageBrush(StyleSet->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
+
 FString FDesignerSlateStyle::InContent(const FString& RelativePath, const ANSICHAR* Extension)
 {
-	auto myself = IPluginManager::Get().FindPlugin(TEXT("Designer"));
-	check(myself.IsValid());
-	static FString ContentDir = myself->GetBaseDir() / TEXT("Resources");
+	static FString ContentDir = IPluginManager::Get().FindPlugin(TEXT("Designer"))->GetContentDir();
 	return (ContentDir / RelativePath) + Extension;
 }
 
 TSharedPtr<FSlateStyleSet> FDesignerSlateStyle::StyleSet = nullptr;
 TSharedPtr<class ISlateStyle> FDesignerSlateStyle::Get() { return StyleSet; }
+
+FName FDesignerSlateStyle::GetStyleSetName()
+{
+	static FName DesignerStyleName(TEXT("DesignerStyle"));
+	return DesignerStyleName;
+}
 
 void FDesignerSlateStyle::Initialize()
 {
@@ -52,11 +58,11 @@ void FDesignerSlateStyle::Initialize()
 		return;
 	}
 
-	StyleSet = MakeShareable(new FSlateStyleSet("DesignerSlateStyle"));
+	StyleSet = MakeShareable(new FSlateStyleSet(GetStyleSetName()));
 
-	FString ProjectResourceDir = FPaths::ProjectPluginsDir() / TEXT("Designer/Resources");
-	FString EngineResourceDir = FPaths::EnginePluginsDir() / TEXT("Designer/Resources");
-
+	const FString ProjectResourceDir = FPaths::ProjectPluginsDir() / TEXT("Designer/Resources");
+	const FString EngineResourceDir = FPaths::EnginePluginsDir() / TEXT("Designer/Resources");
+	
 	if (IFileManager::Get().DirectoryExists(*ProjectResourceDir)) //Is the plugin in the project? In that case, use those resources
 	{
 		StyleSet->SetContentRoot(ProjectResourceDir);
@@ -69,10 +75,10 @@ void FDesignerSlateStyle::Initialize()
 	}
 
 	{
-		StyleSet->Set("Designer.Icon", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon40", ".png"), IconSize40));
-		StyleSet->Set("Designer.Icon.Small", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon20", ".png"), IconSize20));
-		StyleSet->Set("Designer.Icon.Selected", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon40", ".png"), IconSize40));
-		StyleSet->Set("Designer.Icon.Selected.Small", new FSlateImageBrush(FDesignerSlateStyle::InContent("Icon20", ".png"), IconSize20));
+		StyleSet->Set("Designer.Icon", new IMAGE_BRUSH("Icon40", IconSize40));
+		StyleSet->Set("Designer.Icon.Small", new IMAGE_BRUSH("Icon20", IconSize20));
+		StyleSet->Set("Designer.Icon.Selected", new IMAGE_BRUSH("Icon40", IconSize40));
+		StyleSet->Set("Designer.Icon.Selected.Small", new IMAGE_BRUSH("Icon20", IconSize20));
 	}
 
 	FSlateStyleRegistry::RegisterSlateStyle(*StyleSet.Get());
